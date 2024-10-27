@@ -69,6 +69,19 @@
         }
     </style>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: "931616178821-8gjrtu3isc3h18kqnq7b0i2p7dqdssc9.apps.googleusercontent.com",
+                callback: handleCredentialResponse
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("googleLoginButtonContainer"),
+                { theme: "outline", size: "large", width: "100%" }
+            );
+        };
+    </script>
+    
 </head>
 <body>
     <h1>홈 화면</h1>
