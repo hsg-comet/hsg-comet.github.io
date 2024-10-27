@@ -105,12 +105,7 @@
                 { theme: "outline", size: "large", width: "100%" }
             );
         }
-
-        google.accounts.id.renderButton(
-    document.getElementById("googleLoginButtonContainer"),
-    { theme: "outline", size: "large", width: 300 } // 픽셀 단위로 설정
-);
-
+        
         function handleCredentialResponse(response) {
             const userInfo = JSON.parse(atob(response.credential.split('.')[1]));
             const existingNickname = localStorage.getItem("nickname");
