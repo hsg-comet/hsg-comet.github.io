@@ -10,6 +10,10 @@
             background-color: #f9f9f9;
             margin: 0;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         .article {
             background-color: #fff;
@@ -43,8 +47,8 @@
         }
         .home-button {
             margin-bottom: 20px;
-            display: block;
-            text-align: center;
+            width: 100%;
+            max-width: 300px;
             padding: 10px 15px;
             background-color: #007bff;
             color: #fff;
@@ -57,19 +61,67 @@
         .home-button:hover {
             background-color: #0056b3;
         }
+        #googleLoginButtonContainer {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            max-width: 300px;
+        }
     </style>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <h1>홈 화면</h1>
-    <a href="write.html" class="home-button">기사 작성하기</a>
-    <div id="articles-container"></div> <!-- 기사가 표시될 컨테이너 추가 -->
+    <a href="write.html" id="writeButton" class="home-button" style="display: none;">기사 작성하기</a>
+    <div id="googleLoginButtonContainer">
+        <button id="googleLoginButton" class="home-button">구글 로그인</button>
+    </div>
+    <div id="articles-container"></div>
 
     <script>
+        let isLoggedIn = false;
+
+        // 구글 로그인 초기화
+        function initializeGoogleLogin() {
+            google.accounts.id.initialize({
+                client_id: "931616178821-8gjrtu3isc3h18kqnq7b0i2p7dqdssc9.apps.googleusercontent.com",
+                callback: handleCredentialResponse
+            });
+            google.accounts.id.renderButton(
+                document.getElementById("googleLoginButtonContainer"),
+                { theme: "outline", size: "large", width: "100%" }
+            );
+        }
+
+        function handleCredentialResponse(response) {
+            const userInfo = JSON.parse(atob(response.credential.split('.')[1]));
+            const existingNickname = localStorage.getItem("nickname");
+
+            isLoggedIn = true;
+            document.getElementById("writeButton").style.display = "block";
+
+            if (!existingNickname) {
+                const nickname = prompt("닉네임을 설정하세요:");
+                if (nickname) {
+                    localStorage.setItem("nickname", nickname);
+                    alert("닉네임이 설정되었습니다. 한 번 설정한 닉네임은 변경할 수 없습니다.");
+                }
+            }
+        }
+
+        window.onload = function() {
+            initializeGoogleLogin();
+            if (localStorage.getItem("nickname")) {
+                isLoggedIn = true;
+                document.getElementById("writeButton").style.display = "block";
+            }
+            displayArticles();
+        };
+
         function displayArticles() {
             const articlesContainer = document.getElementById('articles-container');
             const articles = JSON.parse(localStorage.getItem('articles')) || [];
-
-            articlesContainer.innerHTML = ''; // 기존 내용 초기화
+            articlesContainer.innerHTML = '';
             articles.forEach((article, index) => {
                 const articleElement = document.createElement('div');
                 articleElement.className = 'article';
@@ -81,7 +133,6 @@
                 const contentElement = document.createElement('div');
                 contentElement.innerHTML = article.content;
 
-                // 삭제 버튼 추가
                 const deleteButton = document.createElement('button');
                 deleteButton.className = 'delete-button';
                 deleteButton.textContent = '삭제';
@@ -94,15 +145,12 @@
             });
         }
 
-        // 특정 기사를 삭제하는 함수
         function deleteArticle(index) {
             const articles = JSON.parse(localStorage.getItem('articles')) || [];
-            articles.splice(index, 1); // 해당 인덱스의 기사 삭제
+            articles.splice(index, 1);
             localStorage.setItem('articles', JSON.stringify(articles));
-            displayArticles(); // 새로 고침하여 삭제된 내용 반영
+            displayArticles();
         }
-
-        window.onload = displayArticles;
     </script>
 </body>
 </html>
