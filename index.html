@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>홈 화면</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .article {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .article-title {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
+        }
+        h1 {
+            text-align: center;
+        }
+        .home-button {
+            margin-bottom: 20px;
+            display: block;
+            text-align: center;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .home-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>홈 화면</h1>
+    <a href="write.html" class="home-button">기사 작성하기</a>
+    <div id="articles-container"></div> <!-- 기사가 표시될 컨테이너 추가 -->
+
+    <script>
+        function displayArticles() {
+            const articlesContainer = document.getElementById('articles-container');
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+
+            articlesContainer.innerHTML = ''; // 기존 내용 초기화
+            articles.forEach((article, index) => {
+                const articleElement = document.createElement('div');
+                articleElement.className = 'article';
+
+                const titleElement = document.createElement('div');
+                titleElement.className = 'article-title';
+                titleElement.textContent = article.title;
+
+                const contentElement = document.createElement('div');
+                contentElement.innerHTML = article.content;
+
+                // 삭제 버튼 추가
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = () => deleteArticle(index);
+
+                articleElement.appendChild(titleElement);
+                articleElement.appendChild(contentElement);
+                articleElement.appendChild(deleteButton);
+                articlesContainer.appendChild(articleElement);
+            });
+        }
+
+        // 특정 기사를 삭제하는 함수
+        function deleteArticle(index) {
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            articles.splice(index, 1); // 해당 인덱스의 기사 삭제
+            localStorage.setItem('articles', JSON.stringify(articles));
+            displayArticles(); // 새로 고침하여 삭제된 내용 반영
+        }
+
+        window.onload = displayArticles;
+    </script>
+</body>
+</html>
