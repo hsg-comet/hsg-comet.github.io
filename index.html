@@ -271,8 +271,8 @@
                 alert("로그인이 필요합니다.");
                 login(); // 로그인이 필요할 경우 로그인 시도
             } else {
-                // 여기서 기사 작성 페이지로 이동하는 코드를 추가
-                alert("기사 작성 페이지로 이동합니다.");
+                // 로그인된 상태에서 write.html로 이동
+                window.location.href = "write.html"; // 기사 작성 페이지로 이동
             }
         }
     </script>
