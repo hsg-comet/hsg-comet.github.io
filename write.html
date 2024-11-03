@@ -109,7 +109,24 @@
     </div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script>
+        // Firebase 구성
+       const firebaseConfig = {
+  apiKey: "AIzaSyAISfgWPTP3ALginwx96nlp-Wlwlr2aw7o",
+  authDomain: "hsg-comet-news.firebaseapp.com",
+  projectId: "hsg-comet-news",
+  storageBucket: "hsg-comet-news.firebasestorage.app",
+  messagingSenderId: "739091155839",
+  appId: "1:739091155839:web:df72ed39f9c95866f4684a",
+  measurementId: "G-429H8C3SMN"
+};
+
+        // Firebase 초기화
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         var quill = new Quill('#editor', {
             theme: 'snow',
             modules: {
@@ -160,17 +177,24 @@
             alert('기사가 불러와졌습니다!');
         }
 
-        // 기사를 게시하여 로컬 스토리지에 저장하는 함수
+        // 기사를 게시하여 Firebase에 저장하는 함수
         function publishArticle() {
             const title = document.getElementById("title").value;
             const content = quill.root.innerHTML;
 
             if (title && content) {
-                const articles = JSON.parse(localStorage.getItem("articles")) || [];
-                articles.push({ title: title, content: content });
-                localStorage.setItem("articles", JSON.stringify(articles));
-                alert("기사가 게시되었습니다!");
-                window.location.href = "index.html"; // 게시 후 홈으로 이동
+                const articlesRef = database.ref('articles');
+                const newArticleRef = articlesRef.push();
+                newArticleRef.set({
+                    title: title,
+                    content: content
+                }).then(() => {
+                    alert("기사가 게시되었습니다!");
+                    window.location.href = "index.html"; // 게시 후 홈으로 이동
+                }).catch((error) => {
+                    console.error("게시 중 오류 발생:", error);
+                    alert("기사를 게시하는 동안 오류가 발생했습니다.");
+                });
             } else {
                 alert("제목과 내용을 입력해주세요.");
             }
