@@ -18,10 +18,22 @@
             padding: 15px;
             margin-bottom: 20px;
             position: relative;
+            cursor: pointer; /* 클릭할 수 있는 느낌을 주기 위해 추가 */
         }
         .article-title {
             font-weight: bold;
             font-size: 1.2em;
+        }
+        .article-thumbnail {
+            width: 100%;
+            height: auto;
+            max-height: 150px;
+            object-fit: cover;
+            margin: 10px 0;
+        }
+        .article-info {
+            font-size: 0.9em;
+            color: #555;
         }
         .delete-button {
             position: absolute;
@@ -61,8 +73,7 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            display: flex; /* 버튼들을 가로로 정렬하기 위해 flex 사용 */
-            align-items: center; /* 수직 중앙 정렬 */
+            display: flex;
         }
         .button {
             padding: 10px 20px;
@@ -100,14 +111,14 @@
             margin-left: 10px;
         }
         .profile-button {
-            padding: 10px 20px; /* 로그인 버튼과 동일한 패딩 */
-            background-color: #007bff; /* 동일한 배경색 */
-            color: #fff; /* 동일한 글자색 */
-            font-weight: bold; /* 동일한 글자 두께 */
-            border: none; /* 테두리 없음 */
-            border-radius: 5px; /* 동일한 둥근 모서리 */
-            cursor: pointer; /* 커서 포인터 */
-            margin-left: 10px; /* 버튼 간 간격 */
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
         }
         .profile-dropdown {
             display: none;
@@ -168,7 +179,6 @@
         }
 
         function updateUI() {
-            // 로그인 상태에 따라 버튼 숨기기
             const loginBtn = document.getElementById("login-btn");
             const profileBtn = document.getElementById("profile-btn");
 
@@ -181,16 +191,16 @@
             await auth0.loginWithRedirect({
                 redirect_uri: window.location.origin
             });
-            isAuthenticated = true; // 로그인 시 상태 업데이트
-            updateUI(); // UI 업데이트
+            isAuthenticated = true;
+            updateUI();
         }
 
         async function logout() {
             await auth0.logout({
                 returnTo: window.location.origin
             });
-            isAuthenticated = false; // 로그아웃 시 상태 업데이트
-            updateUI(); // UI 업데이트
+            isAuthenticated = false;
+            updateUI();
         }
 
         function setNickname() {
@@ -206,8 +216,8 @@
                 document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
                 alert("닉네임이 설정되었습니다.");
                 document.getElementById("nickname-setup").style.display = 'none';
-                isAuthenticated = true; // 닉네임 설정 후 로그인 상태로 간주
-                updateUI(); // UI 업데이트
+                isAuthenticated = true;
+                updateUI();
             }
         }
 
@@ -239,21 +249,32 @@
             articles.forEach((article, index) => {
                 const articleElement = document.createElement('div');
                 articleElement.className = 'article';
+                articleElement.onclick = () => viewArticle(article); // 클릭 시 전체 기사 보기
 
                 const titleElement = document.createElement('div');
                 titleElement.className = 'article-title';
                 titleElement.textContent = article.title;
 
-                const contentElement = document.createElement('div');
-                contentElement.innerHTML = article.content;
+                const thumbnailElement = document.createElement('img');
+                thumbnailElement.className = 'article-thumbnail';
+                thumbnailElement.src = article.thumbnail; // 기사 썸네일 이미지
+
+                const date = new Date(article.date).toLocaleString(); // 기사 작성 날짜
+                const infoElement = document.createElement('div');
+                infoElement.className = 'article-info';
+                infoElement.textContent = `작성자: ${article.nickname || '작성자 없음'} / 작성일: ${date}`;
 
                 const deleteButton = document.createElement('button');
                 deleteButton.className = 'delete-button';
                 deleteButton.textContent = '삭제';
-                deleteButton.onclick = () => deleteArticle(index);
+                deleteButton.onclick = (event) => {
+                    event.stopPropagation(); // 클릭 이벤트 전파 방지
+                    deleteArticle(index);
+                };
 
                 articleElement.appendChild(titleElement);
-                articleElement.appendChild(contentElement);
+                articleElement.appendChild(thumbnailElement);
+                articleElement.appendChild(infoElement);
                 articleElement.appendChild(deleteButton);
                 articlesContainer.appendChild(articleElement);
             });
@@ -266,13 +287,17 @@
             displayArticles();
         }
 
+        function viewArticle(article) {
+            // 전체 기사 보기 기능을 여기에 구현
+            alert(`제목: ${article.title}\n내용: ${article.content}\n작성자: ${article.nickname || '작성자 없음'}`);
+        }
+
         function checkLoginForArticle() {
             if (!isAuthenticated) {
                 alert("로그인이 필요합니다.");
-                login(); // 로그인이 필요할 경우 로그인 시도
+                login();
             } else {
-                // 로그인된 상태에서 write.html로 이동
-                window.location.href = "write.html"; // 기사 작성 페이지로 이동
+                window.location.href = "write.html";
             }
         }
     </script>
