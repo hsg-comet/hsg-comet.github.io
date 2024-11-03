@@ -14,65 +14,39 @@
         h1 {
             text-align: center;
         }
-        .article {
-            background-color: #fff;
+        .nickname-list, .article-list {
+            margin: 20px;
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
+            background-color: #fff;
+        }
+        .nickname-item, .article-item {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        .nickname-input, .delete-button {
+            padding: 5px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .nickname-input {
+            flex: 1;
         }
         .delete-button {
             background-color: #ff4d4d;
             color: white;
             border: none;
             border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            margin-top: 10px;
         }
         .delete-button:hover {
             background-color: #cc0000;
         }
-        #nickname-list {
-            margin-bottom: 20px;
-        }
-        #nickname-list input {
-            margin-right: 10px;
-        }
-        .update-button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .update-button:hover {
-            background-color: #0056b3;
-        }
-        .logout-button {
-            display: block;
-            margin: 20px auto;
-            background-color: #ff4d4d;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-        }
-        .logout-button:hover {
-            background-color: #cc0000;
-        }
     </style>
-</head>
-<body>
-    <h1>개발자 모드</h1>
-    <div id="nickname-list"></div>
-    <button class="logout-button" onclick="logout()">로그아웃</button>
-
     <script>
-        let isAuthenticated = false;
-        
         async function init() {
             const token = localStorage.getItem('auth0Token');
             if (!token) {
@@ -81,45 +55,60 @@
                 return;
             }
 
-            isAuthenticated = true; // 인증된 사용자로 설정
+            const user = await getUser();
+            document.getElementById('user-info').innerText = `현재 사용자: ${user.nickname || user.name}`;
+
             displayNicknames();
             displayArticles();
         }
 
-        function displayNicknames() {
-            const nicknameList = document.getElementById('nickname-list');
-            const nicknames = JSON.parse(localStorage.getItem('nicknames')) || [];
-
-            nicknameList.innerHTML = '';
-            nicknames.forEach((nickname, index) => {
-                const nicknameElement = document.createElement('div');
-                nicknameElement.innerHTML = `
-                    <input type="text" value="${nickname}" id="nickname-${index}">
-                    <button class="update-button" onclick="updateNickname(${index})">수정</button>
-                `;
-                nicknameList.appendChild(nicknameElement);
+        async function getUser() {
+            const token = localStorage.getItem('auth0Token');
+            const response = await fetch(`https://dev-f8s32161wq0z3ksa.us.auth0.com/userinfo`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
+            return await response.json();
         }
 
-        function updateNickname(index) {
-            const newNickname = document.getElementById(`nickname-${index}`).value;
-            const nicknames = JSON.parse(localStorage.getItem('nicknames')) || [];
-            nicknames[index] = newNickname;
-            localStorage.setItem('nicknames', JSON.stringify(nicknames));
-            displayNicknames();
-            alert("닉네임이 수정되었습니다.");
+        function displayNicknames() {
+            const nicknameContainer = document.getElementById('nickname-list');
+            const nickname = localStorage.getItem('nickname') || "없음";
+            nicknameContainer.innerHTML = '';
+
+            const nicknameElement = document.createElement('div');
+            nicknameElement.className = 'nickname-item';
+            nicknameElement.innerHTML = `
+                <span>${nickname}</span>
+                <input type="text" class="nickname-input" placeholder="닉네임 수정" />
+                <button class="nickname-input" onclick="updateNickname()">수정</button>
+            `;
+            nicknameContainer.appendChild(nicknameElement);
+        }
+
+        function updateNickname() {
+            const nicknameInput = document.querySelector('.nickname-input');
+            const newNickname = nicknameInput.value;
+            if (newNickname) {
+                localStorage.setItem('nickname', newNickname);
+                alert("닉네임이 수정되었습니다.");
+                displayNicknames(); // 업데이트된 닉네임 표시
+            } else {
+                alert("닉네임을 입력해주세요.");
+            }
         }
 
         function displayArticles() {
-            const articlesContainer = document.getElementById('articles-container');
+            const articlesContainer = document.getElementById('article-list');
             const articles = JSON.parse(localStorage.getItem('articles')) || [];
-
             articlesContainer.innerHTML = '';
+
             articles.forEach((article, index) => {
                 const articleElement = document.createElement('div');
-                articleElement.className = 'article';
+                articleElement.className = 'article-item';
                 articleElement.innerHTML = `
-                    <div class="article-title">${article.title}</div>
+                    <span>${article.title}</span>
                     <button class="delete-button" onclick="deleteArticle(${index})">삭제</button>
                 `;
                 articlesContainer.appendChild(articleElement);
@@ -133,13 +122,14 @@
             displayArticles();
         }
 
-        function logout() {
-            localStorage.removeItem('auth0Token');
-            isAuthenticated = false;
-            window.location.href = "index.html";
-        }
-
         window.addEventListener('load', init);
     </script>
+</head>
+<body>
+    <h1>개발자 모드</h1>
+    <div id="user-info"></div>
+
+    <div class="nickname-list" id="nickname-list"></div>
+    <div class="article-list" id="article-list"></div>
 </body>
 </html>
