@@ -61,8 +61,8 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            display: flex; /* 버튼들을 가로로 정렬하기 위해 flex 사용 */
-            align-items: center; /* 수직 중앙 정렬 */
+            display: flex;
+            align-items: center;
         }
         .button {
             padding: 10px 20px;
@@ -100,14 +100,14 @@
             margin-left: 10px;
         }
         .profile-button {
-            padding: 10px 20px; /* 로그인 버튼과 동일한 패딩 */
-            background-color: #007bff; /* 동일한 배경색 */
-            color: #fff; /* 동일한 글자색 */
-            font-weight: bold; /* 동일한 글자 두께 */
-            border: none; /* 테두리 없음 */
-            border-radius: 5px; /* 동일한 둥근 모서리 */
-            cursor: pointer; /* 커서 포인터 */
-            margin-left: 10px; /* 버튼 간 간격 */
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
         }
         .profile-dropdown {
             display: none;
@@ -152,10 +152,8 @@
                 window.history.replaceState({}, document.title, "/");
             }
 
-            // 로그인 상태 확인
             isAuthenticated = await auth0.isAuthenticated();
 
-            // 사용자 정보 가져오기
             if (isAuthenticated) {
                 const user = await auth0.getUser();
                 let nickname = localStorage.getItem('nickname');
@@ -171,6 +169,7 @@
         function updateUI() {
             const loginBtn = document.getElementById("login-btn");
             const profileBtn = document.getElementById("profile-btn");
+
             loginBtn.style.display = isAuthenticated ? "none" : "inline-block";
             profileBtn.style.display = isAuthenticated ? "block" : "none";
             document.getElementById("profile-dropdown").style.display = "none";
@@ -180,12 +179,16 @@
             await auth0.loginWithRedirect({
                 redirect_uri: window.location.origin
             });
+            isAuthenticated = true;
+            updateUI();
         }
 
         async function logout() {
             await auth0.logout({
                 returnTo: window.location.origin
             });
+            isAuthenticated = false;
+            updateUI();
         }
 
         function setNickname() {
@@ -202,7 +205,7 @@
                 alert("닉네임이 설정되었습니다.");
                 document.getElementById("nickname-setup").style.display = 'none';
                 isAuthenticated = true; // 닉네임 설정 후 로그인 상태로 간주
-                updateUI(); // UI 업데이트
+                updateUI();
             }
         }
 
@@ -211,12 +214,12 @@
             dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
         }
 
-        function checkLoginForArticle() {
-            if (!isAuthenticated) {
-                alert("로그인이 필요합니다.");
-                login(); // 로그인이 필요할 경우 로그인 시도
+        function developerMode() {
+            const devID = prompt("개발자 ID를 입력해주세요");
+            if (devID === "hsGcOmeT0629") {
+                window.location.href = "dev.html"; // 개발자 페이지로 이동
             } else {
-                window.location.href = "write.html"; // 기사 작성 페이지로 이동
+                alert("일치하지 않습니다.");
             }
         }
 
@@ -259,6 +262,15 @@
             localStorage.setItem('articles', JSON.stringify(articles));
             displayArticles();
         }
+
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인이 필요합니다.");
+                login();
+            } else {
+                window.location.href = "write.html";
+            }
+        }
     </script>
 </head>
 <body>
@@ -269,17 +281,21 @@
             <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
         </div>
         <div id="profile-dropdown" class="profile-dropdown">
-            <div id="profile-nickname">닉네임: </div>
+                        <div id="profile-nickname">닉네임: </div>
+            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
             <button class="dropdown-button" onclick="logout()">로그아웃</button>
         </div>
-        <div id="nickname-setup">
-            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
-            <button onclick="setNickname()">닉네임 설정</button>
-        </div>
     </header>
-
-    <a href="javascript:checkLoginForArticle()" class="home-button">기사 작성하기</a>
-
-    <section id="articles-container"></section>
+    
+    <main>
+        <a href="write.html" class="home-button" onclick="checkLoginForArticle()">글쓰기</a>
+        <div id="articles-container"></div>
+        <div id="nickname-setup">
+            <h3>닉네임 설정</h3>
+            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
+            <button onclick="setNickname()">설정</button>
+        </div>
+    </main>
 </body>
 </html>
+
