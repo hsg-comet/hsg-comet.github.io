@@ -61,7 +61,7 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            display: flex;
+            display: flex; /* 버튼들을 가로로 정렬하기 위해 flex 사용 */
             align-items: center; /* 수직 중앙 정렬 */
         }
         .button {
@@ -112,7 +112,7 @@
         .profile-dropdown {
             display: none;
             position: absolute;
-            top: 50px; /* 프로필 버튼 아래 위치 */
+            top: 50px;
             right: 20px;
             background-color: white;
             border: 1px solid #ccc;
@@ -271,25 +271,36 @@
             localStorage.setItem('articles', JSON.stringify(articles));
             displayArticles();
         }
+
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인을 먼저 해주세요.");
+            } else {
+                window.location.href = 'write.html';
+            }
+        }
     </script>
 </head>
 <body>
-    <h1>뉴스 기사</h1>
-    <div class="auth-buttons">
-        <button id="login-btn" class="button" onclick="login()">로그인</button>
-        <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
+    <header>
+        <h1>홈 화면</h1>
+        <div class="auth-buttons">
+            <button id="login-btn" class="button" onclick="login()">로그인</button>
+            <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
+        </div>
         <div id="profile-dropdown" class="profile-dropdown">
             <div id="profile-nickname">닉네임: </div>
-            <button class="dropdown-button" onclick="logout()">로그아웃</button>
             <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
+            <button class="dropdown-button" onclick="logout()">로그아웃</button>
         </div>
-    </div>
-    <div id="nickname-setup">
-        <h3>닉네임 설정</h3>
-        <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요" />
-        <button onclick="setNickname()">설정</button>
-    </div>
-    <div id="articles-container"></div>
-    <a class="home-button" href="/">홈으로</a>
+        <div id="nickname-setup">
+            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
+            <button onclick="setNickname()">닉네임 설정</button>
+        </div>
+    </header>
+
+    <a href="javascript:checkLoginForArticle()" class="home-button">기사 작성하기</a>
+
+    <section id="articles-container"></section>
 </body>
 </html>
