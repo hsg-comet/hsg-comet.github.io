@@ -6,6 +6,7 @@
     <title>기사 작성</title>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
+        /* 기존 스타일 */
         body, html {
             height: 100%;
             margin: 0;
@@ -101,6 +102,10 @@
                 <label for="content">기사 내용</label>
                 <div id="editor" placeholder="기사 내용을 입력하세요"></div>
             </div>
+            <div class="form-group">
+                <label for="image-upload">이미지 업로드</label>
+                <input type="file" id="image-upload" accept="image/*">
+            </div>
             <button type="button" class="extra-button" onclick="tempSave()">임시 저장</button>
             <button type="button" class="extra-button" onclick="saveArticle()">파일로 저장</button>
             <button type="button" class="extra-button" onclick="loadArticle()">불러오기</button>
@@ -109,23 +114,7 @@
     </div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script>
-        // Firebase 구성
-        const firebaseConfig = {
-  apiKey: "AIzaSyAISfgWPTP3ALginwx96nlp-Wlwlr2aw7o",
-  authDomain: "hsg-comet-news.firebaseapp.com",
-  projectId: "hsg-comet-news",
-  storageBucket: "hsg-comet-news.firebasestorage.app",
-  messagingSenderId: "739091155839",
-  appId: "1:739091155839:web:df72ed39f9c95866f4684a",
-  measurementId: "G-429H8C3SMN"
-};
-        // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
         var quill = new Quill('#editor', {
             theme: 'snow',
             modules: {
@@ -139,7 +128,34 @@
             }
         });
 
-        // 기사를 임시 저장하는 함수
+        document.getElementById('image-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageUrl = e.target.result;
+                    const range = quill.getSelection();
+                    quill.insertEmbed(range.index, 'image', imageUrl);
+                    saveImage(imageUrl);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function saveImage(imageUrl) {
+            const savedImages = JSON.parse(localStorage.getItem('savedImages')) || [];
+            savedImages.push(imageUrl);
+            localStorage.setItem('savedImages', JSON.stringify(savedImages));
+        }
+
+        function loadImages() {
+            const savedImages = JSON.parse(localStorage.getItem('savedImages')) || [];
+            savedImages.forEach(imageUrl => {
+                const range = quill.getSelection();
+                quill.insertEmbed(range.index, 'image', imageUrl);
+            });
+        }
+
         function tempSave() {
             const title = document.getElementById('title').value;
             const content = quill.root.innerHTML;
@@ -147,7 +163,6 @@
             alert('기사가 임시 저장되었습니다!');
         }
 
-        // 기사를 파일로 저장하는 함수
         function saveArticle() {
             const title = document.getElementById('title').value;
             const content = quill.root.innerHTML;
@@ -164,7 +179,6 @@
             alert('기사가 파일로 저장되었습니다!');
         }
 
-        // 기사를 불러오는 함수
         function loadArticle() {
             const tempArticle = JSON.parse(localStorage.getItem('tempArticle'));
             if (!tempArticle) {
@@ -173,27 +187,20 @@
             }
             document.getElementById('title').value = tempArticle.title;
             quill.root.innerHTML = tempArticle.content;
+            loadImages();
             alert('기사가 불러와졌습니다!');
         }
 
-        // 기사를 게시하여 Firebase에 저장하는 함수
         function publishArticle() {
             const title = document.getElementById("title").value;
             const content = quill.root.innerHTML;
 
             if (title && content) {
-                const articlesRef = database.ref('articles');
-                const newArticleRef = articlesRef.push();
-                newArticleRef.set({
-                    title: title,
-                    content: content
-                }).then(() => {
-                    alert("기사가 게시되었습니다!");
-                    window.location.href = "index.html"; // 게시 후 홈으로 이동
-                }).catch((error) => {
-                    console.error("게시 중 오류 발생:", error);
-                    alert("기사를 게시하는 동안 오류가 발생했습니다.");
-                });
+                const articles = JSON.parse(localStorage.getItem("articles")) || [];
+                articles.push({ title: title, content: content });
+                localStorage.setItem("articles", JSON.stringify(articles));
+                alert("기사가 게시되었습니다!");
+                window.location.href = "index.html";
             } else {
                 alert("제목과 내용을 입력해주세요.");
             }
