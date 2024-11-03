@@ -20,7 +20,7 @@
             width: 100vw;
             height: 100vh;
             padding: 20px;
-            padding-top: 100px;
+            padding-top: 150px; /* Increased top spacing */
             background-color: #fff;
             display: flex;
             flex-direction: column;
@@ -54,7 +54,7 @@
             font-weight: bold;
             margin-bottom: 5px;
         }
-        input[type="text"], input[type="file"] {
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -68,12 +68,6 @@
             max-width: 800px;
             margin: 0 auto;
             text-align: left;
-        }
-        .thumbnail-preview {
-            display: none;
-            width: 100%;
-            max-width: 300px;
-            margin-top: 10px;
         }
         .submit-button, .extra-button {
             width: 100%;
@@ -104,11 +98,6 @@
                 <input type="text" id="title" name="title" placeholder="기사 제목을 입력하세요" required>
             </div>
             <div class="form-group">
-                <label for="thumbnail-input">썸네일 이미지 선택:</label>
-                <input type="file" id="thumbnail-input" accept="image/*" onchange="previewThumbnail(event)">
-                <img id="thumbnail-preview" class="thumbnail-preview" src="" alt="썸네일 미리보기">
-            </div>
-            <div class="form-group">
                 <label for="content">기사 내용</label>
                 <div id="editor" placeholder="기사 내용을 입력하세요"></div>
             </div>
@@ -134,39 +123,16 @@
             }
         });
 
-        // 썸네일 미리보기 함수
-        function previewThumbnail(event) {
-            const thumbnailPreview = document.getElementById('thumbnail-preview');
-            const file = event.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                thumbnailPreview.src = e.target.result;
-                thumbnailPreview.style.display = 'block';
-            };
-
-            if (file) {
-                reader.readAsDataURL(file);
-            } else {
-                thumbnailPreview.style.display = 'none';
-            }
-        }
-
-        // 기사를 임시 저장하는 함수
         function tempSave() {
             const title = document.getElementById('title').value;
             const content = quill.root.innerHTML;
-            const thumbnail = document.getElementById('thumbnail-preview').src;
-
-            localStorage.setItem('tempArticle', JSON.stringify({ title, content, thumbnail }));
+            localStorage.setItem('tempArticle', JSON.stringify({ title, content }));
             alert('기사가 임시 저장되었습니다!');
         }
 
-        // 기사를 파일로 저장하는 함수
         function saveArticle() {
             const title = document.getElementById('title').value;
             const content = quill.root.innerHTML;
-            const thumbnail = document.getElementById('thumbnail-preview').src;
             const fileContent = `제목: ${title}\n\n${content}`;
             const blob = new Blob([fileContent], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -180,7 +146,6 @@
             alert('기사가 파일로 저장되었습니다!');
         }
 
-        // 기사를 불러오는 함수
         function loadArticle() {
             const tempArticle = JSON.parse(localStorage.getItem('tempArticle'));
             if (!tempArticle) {
@@ -189,20 +154,26 @@
             }
             document.getElementById('title').value = tempArticle.title;
             quill.root.innerHTML = tempArticle.content;
-            document.getElementById('thumbnail-preview').src = tempArticle.thumbnail;
-            document.getElementById('thumbnail-preview').style.display = 'block';
             alert('기사가 불러와졌습니다!');
         }
 
-        // 기사를 게시하여 로컬 스토리지에 저장하는 함수
         function publishArticle() {
             const title = document.getElementById("title").value;
             const content = quill.root.innerHTML;
-            const thumbnail = document.getElementById('thumbnail-preview').src;
 
             if (title && content) {
+                const nickname = localStorage.getItem('nickname') || '익명'; // 사용자 닉네임
+                const timestamp = new Date().toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                }).replace(/\./g, '/').replace(',', '-');
+
                 const articles = JSON.parse(localStorage.getItem("articles")) || [];
-                articles.push({ title: title, content: content, thumbnail: thumbnail });
+                articles.push({ title, content, nickname, timestamp });
                 localStorage.setItem("articles", JSON.stringify(articles));
                 alert("기사가 게시되었습니다!");
                 window.location.href = "index.html"; // 게시 후 홈으로 이동
