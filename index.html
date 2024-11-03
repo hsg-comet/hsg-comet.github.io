@@ -61,6 +61,8 @@
             position: absolute;
             top: 20px;
             right: 20px;
+            display: flex; /* 버튼들을 가로로 정렬하기 위해 flex 사용 */
+            align-items: center; /* 수직 중앙 정렬 */
         }
         .button {
             padding: 10px 20px;
@@ -98,16 +100,14 @@
             margin-left: 10px;
         }
         .profile-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            padding: 10px 20px; /* 로그인 버튼과 동일한 패딩 */
+            background-color: #007bff; /* 동일한 배경색 */
+            color: #fff; /* 동일한 글자색 */
+            font-weight: bold; /* 동일한 글자 두께 */
+            border: none; /* 테두리 없음 */
+            border-radius: 5px; /* 동일한 둥근 모서리 */
+            cursor: pointer; /* 커서 포인터 */
+            margin-left: 10px; /* 버튼 간 간격 */
         }
         .profile-dropdown {
             display: none;
@@ -136,28 +136,10 @@
         }
     </style>
 
-    <!-- Firebase SDK 추가 -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <!-- Auth0 JavaScript SDK 추가 -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
     <script>
-        // Firebase 구성
-        const firebaseConfig = {
-  apiKey: "AIzaSyAISfgWPTP3ALginwx96nlp-Wlwlr2aw7o",
-  authDomain: "hsg-comet-news.firebaseapp.com",
-  projectId: "hsg-comet-news",
-  storageBucket: "hsg-comet-news.firebasestorage.app",
-  messagingSenderId: "739091155839",
-  appId: "1:739091155839:web:df72ed39f9c95866f4684a",
-  measurementId: "G-429H8C3SMN"
-};
-        
-        // Firebase 초기화
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
         let auth0 = null;
-        let isAuth0Initialized = false;
         let isAuthenticated = false;
 
         async function initAuth0() {
@@ -166,15 +148,13 @@
                 client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
             });
 
-            isAuth0Initialized = true;
-            document.getElementById("login-btn").disabled = false;
-
             if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
                 await auth0.handleRedirectCallback();
                 window.history.replaceState({}, document.title, "/");
             }
 
             isAuthenticated = await auth0.isAuthenticated();
+
             if (isAuthenticated) {
                 const user = await auth0.getUser();
                 let nickname = localStorage.getItem('nickname');
@@ -184,42 +164,33 @@
                     document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
                 }
             }
-            updateUI(isAuthenticated);
+            updateUI();
         }
 
-        function updateUI(isAuthenticated) {
-            document.getElementById("login-btn").style.display = isAuthenticated ? "none" : "inline-block"; // 로그인 상태일 때 버튼 숨기기
-            document.getElementById("profile-btn").style.display = isAuthenticated ? "block" : "none";
-            document.getElementById("profile-dropdown").style.display = "none";
+        function updateUI() {
+            // 로그인 상태에 따라 버튼 숨기기
+            const loginBtn = document.getElementById("login-btn");
+            const profileBtn = document.getElementById("profile-btn");
 
-            if (isAuthenticated) {
-                displayArticles(); // 로그인 시 기사 목록 불러오기
-            }
+            loginBtn.style.display = isAuthenticated ? "none" : "inline-block";
+            profileBtn.style.display = isAuthenticated ? "block" : "none";
+            document.getElementById("profile-dropdown").style.display = "none";
         }
 
         async function login() {
-            if (!isAuth0Initialized) {
-                console.log("Auth0 초기화 중... 다시 시도해 주세요.");
-                return;
-            }
-            try {
-                await auth0.loginWithRedirect({
-                    redirect_uri: window.location.origin
-                });
-            } catch (error) {
-                console.error("로그인 중 오류 발생:", error);
-            }
+            await auth0.loginWithRedirect({
+                redirect_uri: window.location.origin
+            });
+            isAuthenticated = true; // 로그인 시 상태 업데이트
+            updateUI(); // UI 업데이트
         }
 
         async function logout() {
-            try {
-                await auth0.logout({
-                    returnTo: window.location.origin
-                });
-                updateUI(false);
-            } catch (error) {
-                console.error("로그아웃 중 오류 발생:", error);
-            }
+            await auth0.logout({
+                returnTo: window.location.origin
+            });
+            isAuthenticated = false; // 로그아웃 시 상태 업데이트
+            updateUI(); // UI 업데이트
         }
 
         function setNickname() {
@@ -235,7 +206,8 @@
                 document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
                 alert("닉네임이 설정되었습니다.");
                 document.getElementById("nickname-setup").style.display = 'none';
-                updateUI(true); // 닉네임 설정 후 UI 업데이트
+                isAuthenticated = true; // 닉네임 설정 후 로그인 상태로 간주
+                updateUI(); // UI 업데이트
             }
         }
 
@@ -254,50 +226,55 @@
             }
         }
 
+        window.addEventListener('load', () => {
+            initAuth0();
+            displayArticles();
+        });
+
         function displayArticles() {
             const articlesContainer = document.getElementById('articles-container');
-            articlesContainer.innerHTML = ''; // 이전 내용 제거
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
 
-            const articlesRef = database.ref('articles');
-            articlesRef.on('value', (snapshot) => {
-                const articles = snapshot.val();
-                for (const id in articles) {
-                    const article = articles[id];
-                    const articleElement = document.createElement('div');
-                    articleElement.className = 'article';
+            articlesContainer.innerHTML = '';
+            articles.forEach((article, index) => {
+                const articleElement = document.createElement('div');
+                articleElement.className = 'article';
 
-                    const titleElement = document.createElement('div');
-                    titleElement.className = 'article-title';
-                    titleElement.textContent = article.title;
+                const titleElement = document.createElement('div');
+                titleElement.className = 'article-title';
+                titleElement.textContent = article.title;
 
-                    const contentElement = document.createElement('div');
-                    contentElement.innerHTML = article.content;
+                const contentElement = document.createElement('div');
+                contentElement.innerHTML = article.content;
 
-                    const deleteButton = document.createElement('button');
-                    deleteButton.innerText = "삭제";
-                    deleteButton.className = 'delete-button';
-                    deleteButton.onclick = function () {
-                        deleteArticle(id);
-                    };
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = () => deleteArticle(index);
 
-                    articleElement.appendChild(titleElement);
-                    articleElement.appendChild(contentElement);
-                    articleElement.appendChild(deleteButton);
-                    articlesContainer.appendChild(articleElement);
-                }
+                articleElement.appendChild(titleElement);
+                articleElement.appendChild(contentElement);
+                articleElement.appendChild(deleteButton);
+                articlesContainer.appendChild(articleElement);
             });
         }
 
-        function deleteArticle(id) {
-            const articleRef = database.ref('articles/' + id);
-            articleRef.remove().then(() => {
-                alert("기사가 삭제되었습니다.");
-            }).catch((error) => {
-                console.error("기사 삭제 중 오류 발생:", error);
-            });
+        function deleteArticle(index) {
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            articles.splice(index, 1);
+            localStorage.setItem('articles', JSON.stringify(articles));
+            displayArticles();
         }
 
-        window.onload = initAuth0;
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인이 필요합니다.");
+                login(); // 로그인이 필요할 경우 로그인 시도
+            } else {
+                // 로그인된 상태에서 write.html로 이동
+                window.location.href = "write.html"; // 기사 작성 페이지로 이동
+            }
+        }
     </script>
 </head>
 <body>
@@ -305,23 +282,21 @@
         <h1>홈 화면</h1>
         <div class="auth-buttons">
             <button id="login-btn" class="button" onclick="login()">로그인</button>
-            <button id="profile-btn" class="button" onclick="toggleProfileDropdown()" style="display: none;">프로필</button>
-            <div id="profile-dropdown" class="profile-dropdown">
-                <div id="profile-nickname" style="margin-bottom: 10px;"></div>
-                <button class="dropdown-button" onclick="logout()">로그아웃</button>
-                <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
-            </div>
+            <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
+        </div>
+        <div id="profile-dropdown" class="profile-dropdown">
+            <div id="profile-nickname">닉네임: </div>
+            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
+            <button class="dropdown-button" onclick="logout()">로그아웃</button>
+        </div>
+        <div id="nickname-setup">
+            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
+            <button onclick="setNickname()">닉네임 설정</button>
         </div>
     </header>
 
-    <a href="javascript:void(0)" class="home-button" onclick="window.location.href='write.html'">기사 작성하기</a>
+    <a href="javascript:checkLoginForArticle()" class="home-button">기사 작성하기</a>
 
     <section id="articles-container"></section>
-
-    <div id="nickname-setup">
-        <h2>닉네임 설정</h2>
-        <input type="text" id="nickname-input" placeholder="닉네임 입력">
-        <button onclick="setNickname()">설정</button>
-    </div>
 </body>
 </html>
