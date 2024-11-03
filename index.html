@@ -136,7 +136,6 @@
         }
     </style>
 
-    <!-- Auth0 JavaScript SDK 추가 -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
     <script>
         let auth0 = null;
@@ -153,8 +152,10 @@
                 window.history.replaceState({}, document.title, "/");
             }
 
+            // 로그인 상태 확인
             isAuthenticated = await auth0.isAuthenticated();
 
+            // 사용자 정보 가져오기
             if (isAuthenticated) {
                 const user = await auth0.getUser();
                 let nickname = localStorage.getItem('nickname');
@@ -168,10 +169,8 @@
         }
 
         function updateUI() {
-            // 로그인 상태에 따라 버튼 숨기기
             const loginBtn = document.getElementById("login-btn");
             const profileBtn = document.getElementById("profile-btn");
-
             loginBtn.style.display = isAuthenticated ? "none" : "inline-block";
             profileBtn.style.display = isAuthenticated ? "block" : "none";
             document.getElementById("profile-dropdown").style.display = "none";
@@ -181,16 +180,12 @@
             await auth0.loginWithRedirect({
                 redirect_uri: window.location.origin
             });
-            isAuthenticated = true; // 로그인 시 상태 업데이트
-            updateUI(); // UI 업데이트
         }
 
         async function logout() {
             await auth0.logout({
                 returnTo: window.location.origin
             });
-            isAuthenticated = false; // 로그아웃 시 상태 업데이트
-            updateUI(); // UI 업데이트
         }
 
         function setNickname() {
@@ -216,13 +211,12 @@
             dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
         }
 
-        function developerMode() {
-            const devID = prompt("개발자 ID를 입력해주세요");
-            if (devID === "hsGcOmeT0629") {
-                document.getElementById("profile-nickname").innerText = "닉네임: [개발자]";
-                alert("개발자 모드 활성화되었습니다.");
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인이 필요합니다.");
+                login(); // 로그인이 필요할 경우 로그인 시도
             } else {
-                alert("일치하지 않습니다.");
+                window.location.href = "write.html"; // 기사 작성 페이지로 이동
             }
         }
 
@@ -265,16 +259,6 @@
             localStorage.setItem('articles', JSON.stringify(articles));
             displayArticles();
         }
-
-        function checkLoginForArticle() {
-            if (!isAuthenticated) {
-                alert("로그인이 필요합니다.");
-                login(); // 로그인이 필요할 경우 로그인 시도
-            } else {
-                // 로그인된 상태에서 write.html로 이동
-                window.location.href = "write.html"; // 기사 작성 페이지로 이동
-            }
-        }
     </script>
 </head>
 <body>
@@ -286,7 +270,6 @@
         </div>
         <div id="profile-dropdown" class="profile-dropdown">
             <div id="profile-nickname">닉네임: </div>
-            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
             <button class="dropdown-button" onclick="logout()">로그아웃</button>
         </div>
         <div id="nickname-setup">
