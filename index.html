@@ -185,6 +185,7 @@
                 await auth0.loginWithRedirect({
                     redirect_uri: window.location.origin
                 });
+                updateUI(true); // 로그인 후 즉시 UI 업데이트
             } catch (error) {
                 console.error("로그인 중 오류 발생:", error);
             }
@@ -195,7 +196,7 @@
                 await auth0.logout({
                     returnTo: window.location.origin
                 });
-                updateUI(false);
+                updateUI(false); // 로그아웃 후 즉시 UI 업데이트
             } catch (error) {
                 console.error("로그아웃 중 오류 발생:", error);
             }
