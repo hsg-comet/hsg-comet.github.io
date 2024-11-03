@@ -140,7 +140,6 @@
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
     <script>
         let auth0 = null;
-        let isAuth0Initialized = false;
         let isAuthenticated = false;
 
         async function initAuth0() {
@@ -148,9 +147,6 @@
                 domain: 'dev-f8s32161wq0z3ksa.us.auth0.com', 
                 client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
             });
-
-            isAuth0Initialized = true;
-            document.getElementById("login-btn").disabled = false;
 
             if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
                 await auth0.handleRedirectCallback();
@@ -172,35 +168,24 @@
         }
 
         function updateUI(isAuthenticated) {
-            document.getElementById("login-btn").style.display = isAuthenticated ? "none" : "inline-block"; // 로그인 상태에 따라 버튼 숨기기
+            // 로그인 상태에 따라 버튼 숨기기
+            document.getElementById("login-btn").style.display = isAuthenticated ? "none" : "inline-block"; 
             document.getElementById("profile-btn").style.display = isAuthenticated ? "block" : "none";
             document.getElementById("profile-dropdown").style.display = "none";
         }
 
         async function login() {
-            if (!isAuth0Initialized) {
-                console.log("Auth0 초기화 중... 다시 시도해 주세요.");
-                return;
-            }
-            try {
-                await auth0.loginWithRedirect({
-                    redirect_uri: window.location.origin
-                });
-                // 로그인 후 UI 업데이트는 initAuth0에서 처리됨
-            } catch (error) {
-                console.error("로그인 중 오류 발생:", error);
-            }
+            await auth0.loginWithRedirect({
+                redirect_uri: window.location.origin
+            });
+            updateUI(true); // 로그인 시 UI 업데이트
         }
 
         async function logout() {
-            try {
-                await auth0.logout({
-                    returnTo: window.location.origin
-                });
-                // 로그아웃 후 UI 업데이트는 initAuth0에서 처리됨
-            } catch (error) {
-                console.error("로그아웃 중 오류 발생:", error);
-            }
+            await auth0.logout({
+                returnTo: window.location.origin
+            });
+            updateUI(false); // 로그아웃 시 UI 업데이트
         }
 
         function setNickname() {
