@@ -97,11 +97,13 @@
                 <label for="title">기사 제목</label>
                 <input type="text" id="title" name="title" placeholder="기사 제목을 입력하세요" required>
             </div>
-            <div class="form-group">
-                <label for="thumbnail">썸네일 이미지 URL</label>
-                <input type="text" id="thumbnail" name="thumbnail" placeholder="썸네일 이미지 URL을 입력하세요">
-            </div>
-            <div class="form-group">
+           <div>
+    <label for="thumbnail-input">썸네일 이미지 선택:</label>
+    <input type="file" id="thumbnail-input" accept="image/*" onchange="previewThumbnail(event)">
+    <img id="thumbnail-preview" src="" alt="썸네일 미리보기" style="display:none; width: 100%; max-width: 300px; margin-top: 10px;">
+</div>
+
+                <div class="form-group">
                 <label for="content">기사 내용</label>
                 <div id="editor" placeholder="기사 내용을 입력하세요"></div>
             </div>
@@ -163,6 +165,24 @@
             quill.root.innerHTML = tempArticle.content;
             alert('기사가 불러와졌습니다!');
         }
+
+        function previewThumbnail(event) {
+    const thumbnailPreview = document.getElementById('thumbnail-preview');
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        thumbnailPreview.src = e.target.result;
+        thumbnailPreview.style.display = 'block';
+    };
+
+    if (file) {
+        reader.readAsDataURL(file);
+    } else {
+        thumbnailPreview.style.display = 'none';
+    }
+}
+
 
         // 기사를 게시하여 로컬 스토리지에 저장하는 함수
         function publishArticle() {
