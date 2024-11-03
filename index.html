@@ -267,34 +267,43 @@
         }
 
         function checkLoginForArticle() {
-            if (!isAuthenticated) {
+                        if (!isAuthenticated) {
                 alert("로그인이 필요합니다.");
-                return;
+                return false;
             }
-            // 기사 작성 함수 호출 또는 기사 작성 페이지로 리다이렉트
+            return true;
+        }
+        
+        function goToWritePage() {
+            if (checkLoginForArticle()) {
+                window.location.href = 'write.html';
+            }
         }
     </script>
 </head>
 <body>
     <h1>홈 화면</h1>
+    <a href="write.html" class="home-button" onclick="goToWritePage(); return false;">기사 작성하기</a>
+    <div id="articles-container"></div>
+    
     <div class="auth-buttons">
         <button id="login-btn" class="button" onclick="login()">로그인</button>
-        <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
+        <button id="profile-btn" class="button profile-button" onclick="toggleProfileDropdown()">프로필</button>
         <div id="profile-dropdown" class="profile-dropdown">
-            <div id="profile-nickname">닉네임: </div>
+            <div id="profile-nickname"></div>
             <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
             <button class="dropdown-button" onclick="logout()">로그아웃</button>
         </div>
     </div>
-
+    
     <div id="nickname-setup">
-        <h2>닉네임 설정</h2>
-        <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요" />
+        <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
         <button onclick="setNickname()">닉네임 설정</button>
     </div>
-
-    <div id="articles-container"></div>
-
-    <a href="create_article.html" class="home-button">기사 작성하기</a>
+    
+    <script>
+        // 여기까지의 script는 initAuth0 및 updateUI와 같은 이전 코드와 연결됩니다.
+    </script>
 </body>
 </html>
+
