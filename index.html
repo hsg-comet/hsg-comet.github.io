@@ -1,180 +1,306 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>기사 작성</title>
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      width: 80%;
-      margin: 50px auto;
-      background-color: white;
-      padding: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    #editor {
-      height: 300px;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    .article-list {
-      margin-top: 50px;
-    }
-    .article-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 10px 0;
-    }
-    .login-container {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홈 화면</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .article {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .article-title {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
+        }
+        h1 {
+            text-align: center;
+        }
+        .home-button {
+            margin-bottom: 20px;
+            display: block;
+            text-align: center;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .home-button:hover {
+            background-color: #0056b3;
+        }
+        .auth-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-left: 10px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        #nickname-setup {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        #nickname-setup input {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #nickname-setup button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .profile-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+        .dropdown-button {
+            width: 100%;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        .dropdown-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+
+    <!-- Auth0 JavaScript SDK 추가 -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
+    <script>
+        let auth0 = null;
+        let isAuth0Initialized = false;
+        let isAuthenticated = false;
+
+        async function initAuth0() {
+            auth0 = await createAuth0Client({
+                domain: 'dev-f8s32161wq0z3ksa.us.auth0.com', 
+                client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
+            });
+
+            isAuth0Initialized = true;
+            document.getElementById("login-btn").disabled = false;
+
+            if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+                await auth0.handleRedirectCallback();
+                window.history.replaceState({}, document.title, "/");
+            }
+
+            isAuthenticated = await auth0.isAuthenticated();
+            if (isAuthenticated) {
+                const user = await auth0.getUser();
+                let nickname = localStorage.getItem('nickname');
+                if (!nickname) {
+                    document.getElementById("nickname-setup").style.display = 'block';
+                } else {
+                    document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
+                }
+            }
+            updateUI(isAuthenticated);
+        }
+
+        function updateUI(isAuthenticated) {
+            document.getElementById("login-btn").style.display = isAuthenticated ? "none" : "inline-block"; // 로그인 상태일 때 버튼 숨기기
+            document.getElementById("profile-btn").style.display = isAuthenticated ? "block" : "none";
+            document.getElementById("profile-dropdown").style.display = "none";
+        }
+
+        async function login() {
+            if (!isAuth0Initialized) {
+                console.log("Auth0 초기화 중... 다시 시도해 주세요.");
+                return;
+            }
+            try {
+                await auth0.loginWithRedirect({
+                    redirect_uri: window.location.origin
+                });
+            } catch (error) {
+                console.error("로그인 중 오류 발생:", error);
+            }
+        }
+
+        async function logout() {
+            try {
+                await auth0.logout({
+                    returnTo: window.location.origin
+                });
+                updateUI(false);
+            } catch (error) {
+                console.error("로그아웃 중 오류 발생:", error);
+            }
+        }
+
+        function setNickname() {
+            const nickname = document.getElementById("nickname-input").value;
+            if (!nickname) {
+                alert("닉네임을 입력해주세요.");
+                return;
+            }
+
+            const confirmNickname = confirm("정말 이 닉네임으로 하시겠습니까? 닉네임은 다시 바꿀 수 없습니다.");
+            if (confirmNickname) {
+                localStorage.setItem('nickname', nickname);
+                document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
+                alert("닉네임이 설정되었습니다.");
+                document.getElementById("nickname-setup").style.display = 'none';
+            }
+        }
+
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById("profile-dropdown");
+            dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+        }
+
+        function developerMode() {
+            const devID = prompt("개발자 ID를 입력해주세요");
+            if (devID === "hsGcOmeT0629") {
+                document.getElementById("profile-nickname").innerText = "닉네임: [개발자]";
+                alert("개발자 모드 활성화되었습니다.");
+            } else {
+                alert("일치하지 않습니다.");
+            }
+        }
+
+        window.addEventListener('load', () => {
+            initAuth0();
+            displayArticles();
+        });
+
+        function displayArticles() {
+            const articlesContainer = document.getElementById('articles-container');
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+
+            articlesContainer.innerHTML = '';
+            articles.forEach((article, index) => {
+                const articleElement = document.createElement('div');
+                articleElement.className = 'article';
+
+                const titleElement = document.createElement('div');
+                titleElement.className = 'article-title';
+                titleElement.textContent = article.title;
+
+                const contentElement = document.createElement('div');
+                contentElement.innerHTML = article.content;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = () => deleteArticle(index);
+
+                articleElement.appendChild(titleElement);
+                articleElement.appendChild(contentElement);
+                articleElement.appendChild(deleteButton);
+                articlesContainer.appendChild(articleElement);
+            });
+        }
+
+        function deleteArticle(index) {
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            articles.splice(index, 1);
+            localStorage.setItem('articles', JSON.stringify(articles));
+            displayArticles();
+        }
+
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인을 먼저 해주세요.");
+            } else {
+                window.location.href = 'write.html';
+            }
+        }
+    </script>
 </head>
 <body>
-
-<div class="container">
-  <h2>기사 작성</h2>
-  <div class="login-container">
-    <div id="g_id_onload"
-         data-client_id="931616178821-8gjrtu3isc3h18kqnq7b0i2p7dqdssc9.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse">
-    </div>
-    <div class="g_id_signin" data-type="standard"></div>
-  </div>
-  <input type="text" id="title" placeholder="기사 제목을 입력하세요" required>
-  
-  <div id="editor">
-    <p>기사 내용을 여기에 작성하세요...</p>
-  </div>
-
-  <button id="submitBtn">기사 저장</button>
-
-  <div class="article-list">
-    <h3>저장된 기사 목록</h3>
-    <ul id="articleList"></ul>
-  </div>
-</div>
-
-<!-- Quill.js 라이브러리 로드 -->
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<script>
-  var quill = new Quill('#editor', {
-    theme: 'snow',
-    placeholder: '기사 내용을 입력하세요...',
-    modules: {
-      toolbar: [
-        [{ 'header': [1, 2, false] }],
-        ['bold', 'italic', 'underline'],
-        ['link', 'image'],
-        [{ 'list': 'ordered'}, { 'list': 'bullet' }]
-      ]
-    }
-  });
-
-  let currentEditIndex = null; // 현재 수정 중인 기사 인덱스
-
-  function loadArticles() {
-    const savedArticles = JSON.parse(localStorage.getItem('articles')) || [];
-    const articleList = document.getElementById('articleList');
-    articleList.innerHTML = '';
-    savedArticles.forEach((article, index) => {
-      const listItem = document.createElement('li');
-      listItem.className = 'article-item';
-      listItem.innerHTML = `
-        <span>${index + 1}. ${article.title}</span>
-        <div>
-          <button onclick="editArticle(${index})">수정</button>
-          <button onclick="deleteArticle(${index})">삭제</button>
+    <header>
+        <h1>홈 화면</h1>
+        <div class="auth-buttons">
+            <button id="login-btn" class="button" onclick="login()">로그인</button>
+            <div id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</div>
         </div>
-      `;
-      articleList.appendChild(listItem);
-    });
-  }
+        <div id="profile-dropdown" class="profile-dropdown">
+            <div id="profile-nickname">닉네임: </div>
+            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
+            <button class="dropdown-button" onclick="logout()">로그아웃</button>
+        </div>
+        <div id="nickname-setup">
+            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
+            <button onclick="setNickname()">닉네임 설정</button>
+        </div>
+    </header>
 
-  document.getElementById('submitBtn').addEventListener('click', function() {
-    var title = document.getElementById('title').value;
-    var content = quill.root.innerHTML;
+    <a href="javascript:checkLoginForArticle()" class="home-button">기사 작성하기</a>
 
-    if (title && content) {
-      const savedArticles = JSON.parse(localStorage.getItem('articles')) || [];
-      if (currentEditIndex !== null) {
-        // 수정 모드
-        savedArticles[currentEditIndex] = { title: title, content: content };
-        alert('기사가 수정되었습니다.');
-        currentEditIndex = null; // 수정 후 인덱스 초기화
-      } else {
-        // 저장 모드
-        savedArticles.push({ title: title, content: content });
-        alert('기사가 저장되었습니다.');
-      }
-      localStorage.setItem('articles', JSON.stringify(savedArticles));
-      loadArticles();
-      document.getElementById('title').value = '';
-      quill.root.innerHTML = '<p><br></p>';
-    } else {
-      alert('제목과 내용을 입력하세요!');
-    }
-  });
-
-  function editArticle(index) {
-    const savedArticles = JSON.parse(localStorage.getItem('articles'));
-    document.getElementById('title').value = savedArticles[index].title;
-    quill.root.innerHTML = savedArticles[index].content;
-    currentEditIndex = index; // 현재 수정 중인 인덱스 설정
-  }
-
-  function deleteArticle(index) {
-    const savedArticles = JSON.parse(localStorage.getItem('articles'));
-    savedArticles.splice(index, 1); // 선택한 기사 삭제
-    localStorage.setItem('articles', JSON.stringify(savedArticles));
-    alert('기사가 삭제되었습니다.');
-    loadArticles();
-  }
-
-  window.onload = function() {
-    loadArticles();
-  };
-
-  function handleCredentialResponse(response) {
-    const token = response.credential;
-    // 사용자 인증이 완료된 후 이곳에서 추가 로직을 작성할 수 있습니다.
-    console.log('토큰:', token);
-    // 사용자 정보 요청
-    fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`)
-      .then(response => response.json())
-      .then(data => {
-        console.log('사용자 정보:', data);
-        alert(`안녕하세요, ${data.name}님!`);
-      });
-  }
-</script>
-
+    <section id="articles-container"></section>
 </body>
 </html>
