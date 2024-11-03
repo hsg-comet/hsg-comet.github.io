@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개발자 모드</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .article {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .delete-button {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
+        }
+        #nickname-list {
+            margin-bottom: 20px;
+        }
+        #nickname-list input {
+            margin-right: 10px;
+        }
+        .update-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .update-button:hover {
+            background-color: #0056b3;
+        }
+        .logout-button {
+            display: block;
+            margin: 20px auto;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .logout-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1>개발자 모드</h1>
+    <div id="nickname-list"></div>
+    <button class="logout-button" onclick="logout()">로그아웃</button>
+
+    <script>
+        let isAuthenticated = false;
+        
+        async function init() {
+            const token = localStorage.getItem('auth0Token');
+            if (!token) {
+                alert("로그인이 필요합니다.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            isAuthenticated = true; // 인증된 사용자로 설정
+            displayNicknames();
+            displayArticles();
+        }
+
+        function displayNicknames() {
+            const nicknameList = document.getElementById('nickname-list');
+            const nicknames = JSON.parse(localStorage.getItem('nicknames')) || [];
+
+            nicknameList.innerHTML = '';
+            nicknames.forEach((nickname, index) => {
+                const nicknameElement = document.createElement('div');
+                nicknameElement.innerHTML = `
+                    <input type="text" value="${nickname}" id="nickname-${index}">
+                    <button class="update-button" onclick="updateNickname(${index})">수정</button>
+                `;
+                nicknameList.appendChild(nicknameElement);
+            });
+        }
+
+        function updateNickname(index) {
+            const newNickname = document.getElementById(`nickname-${index}`).value;
+            const nicknames = JSON.parse(localStorage.getItem('nicknames')) || [];
+            nicknames[index] = newNickname;
+            localStorage.setItem('nicknames', JSON.stringify(nicknames));
+            displayNicknames();
+            alert("닉네임이 수정되었습니다.");
+        }
+
+        function displayArticles() {
+            const articlesContainer = document.getElementById('articles-container');
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+
+            articlesContainer.innerHTML = '';
+            articles.forEach((article, index) => {
+                const articleElement = document.createElement('div');
+                articleElement.className = 'article';
+                articleElement.innerHTML = `
+                    <div class="article-title">${article.title}</div>
+                    <button class="delete-button" onclick="deleteArticle(${index})">삭제</button>
+                `;
+                articlesContainer.appendChild(articleElement);
+            });
+        }
+
+        function deleteArticle(index) {
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            articles.splice(index, 1);
+            localStorage.setItem('articles', JSON.stringify(articles));
+            displayArticles();
+        }
+
+        function logout() {
+            localStorage.removeItem('auth0Token');
+            isAuthenticated = false;
+            window.location.href = "index.html";
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
