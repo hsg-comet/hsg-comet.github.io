@@ -5,38 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>기사 보기</title>
     <style>
-        .container {
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
             padding: 20px;
+            background-color: #f9f9f9;
         }
-        .home-button {
-            display: block;
-            padding: 10px;
-            background-color: #007bff;
-            color: #fff;
-            font-weight: bold;
+        #article-container {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            text-decoration: none;
-            margin: 0 auto;
-            width: 200px;  /* 버튼의 너비 설정 */
-            text-align: center;
+        }
+        .delete-button {
+            padding: 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="home-button">홈으로 돌아가기</a>
-    <div class="container" id="article-container"></div>
+    <div class="home-button" onclick="window.location.href='index.html'">홈으로</div>
+
+    <div id="article-container">
+        <h1 id="article-title"></h1>
+        <img id="article-thumbnail" style="max-width: 100%; height: auto;" />
+        <p><strong>작성자:</strong> <span id="article-author"></span> | <strong>작성일:</strong> <span id="article-date"></span></p>
+        <div id="article-content"></div>
+        <button id="delete-article-btn" class="delete-button" style="display:none;" onclick="deleteArticle()">삭제</button>
+    </div>
 
     <script>
         const article = JSON.parse(localStorage.getItem('currentArticle'));
-        const container = document.getElementById('article-container');
+        document.getElementById("article-title").innerText = article.title;
+        document.getElementById("article-thumbnail").src = article.thumbnail || 'default-thumbnail.jpg';
+        document.getElementById("article-author").innerText = article.author;
+        document.getElementById("article-date").innerText = article.date;
+        document.getElementById("article-content").innerHTML = article.content;
 
-        if (article) {
-            container.innerHTML = `
-                <h1>${article.title}</h1>
-                <img src="${article.thumbnail}" alt="썸네일" style="max-width: 100%; height: auto;">
-                <p><strong>작성자:</strong> ${article.author} | <strong>작성일:</strong> ${article.date}</p>
-                <div>${article.content}</div>
-            `;
+        if (article.author === localStorage.getItem('nickname')) {
+            document.getElementById("delete-article-btn").style.display = 'inline-block';
+        }
+
+        function deleteArticle() {
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            const index = articles.findIndex(a => a.title === article.title && a.date === article.date);
+            if (index !== -1) {
+                articles.splice(index, 1);
+                localStorage.setItem('articles', JSON.stringify(articles));
+                alert("기사가 삭제되었습니다.");
+                window.location.href = 'index.html';
+            }
         }
     </script>
 </body>
