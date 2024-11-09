@@ -131,51 +131,66 @@
         let auth0 = null;
         let isAuthenticated = false;
 
+        // Auth0 초기화 함수
         async function initAuth0() {
-            auth0 = await createAuth0Client({
-                domain: 'dev-f8s32161wq0z3ksa.us.auth0.com',
-                client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
-            });
+            try {
+                auth0 = await createAuth0Client({
+                    domain: 'dev-f8s32161wq0z3ksa.us.auth0.com',
+                    client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
+                });
 
-            if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
-                await auth0.handleRedirectCallback();
-                window.history.replaceState({}, document.title, "/");
-            }
-
-            isAuthenticated = await auth0.isAuthenticated();
-
-            if (isAuthenticated) {
-                const user = await auth0.getUser();
-                let nickname = localStorage.getItem('nickname');
-                if (!nickname) {
-                    document.getElementById("nickname-setup").style.display = 'block';
-                } else {
-                    document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
-                    document.getElementById("nickname-setup").style.display = 'none';
+                // 로그인 후 리디렉션 처리
+                if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+                    await auth0.handleRedirectCallback();
+                    window.history.replaceState({}, document.title, "/");
                 }
+
+                isAuthenticated = await auth0.isAuthenticated();
+
+                if (isAuthenticated) {
+                    const user = await auth0.getUser();
+                    let nickname = localStorage.getItem('nickname');
+                    if (!nickname) {
+                        document.getElementById("nickname-setup").style.display = 'block';
+                    } else {
+                        document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
+                        document.getElementById("nickname-setup").style.display = 'none';
+                    }
+                }
+                updateUI();
+            } catch (error) {
+                console.error("Auth0 초기화 오류:", error);
             }
-            updateUI();
         }
 
+        // UI 업데이트 함수
         function updateUI() {
             const loginBtn = document.getElementById("login-btn");
             const profileBtn = document.getElementById("profile-btn");
 
             loginBtn.style.display = isAuthenticated ? "none" : "inline-block";
             profileBtn.style.display = isAuthenticated ? "block" : "none";
-            if (document.getElementById("profile-dropdown")) {
-                document.getElementById("profile-dropdown").style.display = "none";
+
+            const dropdown = document.getElementById("profile-dropdown");
+            if (dropdown) {
+                dropdown.style.display = "none";
             }
         }
 
+        // 로그인 함수
         async function login() {
-            await auth0.loginWithRedirect({
-                redirect_uri: window.location.origin
-            });
-            isAuthenticated = true;
-            updateUI();
+            try {
+                await auth0.loginWithRedirect({
+                    redirect_uri: window.location.origin
+                });
+                isAuthenticated = true;
+                updateUI();
+            } catch (error) {
+                console.error("로그인 실패:", error);
+            }
         }
 
+        // 로그아웃 함수
         async function logout() {
             await auth0.logout({
                 returnTo: window.location.origin
@@ -184,6 +199,7 @@
             updateUI();
         }
 
+        // 닉네임 설정 함수
         function setNickname() {
             const nickname = document.getElementById("nickname-input").value;
             if (!nickname) {
@@ -202,11 +218,13 @@
             }
         }
 
+        // 프로필 드롭다운 토글 함수
         function toggleProfileDropdown() {
             const dropdown = document.getElementById("profile-dropdown");
             dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
         }
 
+        // 개발자 모드 활성화 함수
         function developerMode() {
             const devID = prompt("개발자 ID를 입력해주세요");
             if (devID === "hsGcOmeT0629") {
@@ -217,11 +235,13 @@
             }
         }
 
+        // 페이지 로딩 시 초기화 및 UI 업데이트
         window.addEventListener('load', () => {
             initAuth0();
             displayArticles();
         });
 
+        // 기사 목록 표시 함수
         function displayArticles() {
             const articlesContainer = document.getElementById('articles-container');
             const articles = JSON.parse(localStorage.getItem('articles')) || [];
@@ -229,48 +249,22 @@
 
             articles.forEach((article, index) => {
                 const articleElement = document.createElement('div');
-                articleElement.className = 'article';
-                articleElement.onclick = () => openArticleView(article);
-
-                const titleElement = document.createElement('div');
-                titleElement.className = 'article-title';
-                titleElement.textContent = article.title;
-
-                const thumbnailElement = document.createElement('img');
-                thumbnailElement.className = 'article-thumbnail';
-                thumbnailElement.src = article.thumbnail || 'default-thumbnail.jpg';
-
-                const infoElement = document.createElement('div');
-                infoElement.className = 'article-info';
-                infoElement.textContent = `작성자: ${article.author} | 작성일: ${article.date}`;
-
-                articleElement.appendChild(titleElement);
-                articleElement.appendChild(thumbnailElement);
-                articleElement.appendChild(infoElement);
-
-                if (article.author === localStorage.getItem('nickname')) {
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = '삭제';
-                    deleteButton.onclick = (e) => {
-                        e.stopPropagation();
-                        deleteArticle(index);
-                    };
-                    articleElement.appendChild(deleteButton);
-                }
-
+                articleElement.classList.add('article');
+                articleElement.innerHTML = `
+                    <div class="article-title">${article.title}</div>
+                    <img src="${article.thumbnail}" class="article-thumbnail" />
+                    <div class="article-info">${article.author} | ${article.date}</div>
+                    <button onclick="openArticleView(${index})">기사 보기</button>
+                `;
                 articlesContainer.appendChild(articleElement);
             });
         }
 
-        function deleteArticle(index) {
-            const articles = JSON.parse(localStorage.getItem('articles')) || [];
-            articles.splice(index, 1);
-            localStorage.setItem('articles', JSON.stringify(articles));
-            displayArticles();
-        }
-
-        function openArticleView(article) {
-            localStorage.setItem('selectedArticle', JSON.stringify(article));
+        // 기사 보기 페이지로 이동
+        function openArticleView(index) {
+            const articles = JSON.parse(localStorage.getItem('articles'));
+            const selectedArticle = articles[index];
+            localStorage.setItem('selectedArticle', JSON.stringify(selectedArticle));
             window.location.href = 'view-article.html';
         }
     </script>
@@ -291,5 +285,11 @@
 
     <h1>기사 목록</h1>
     <div id="articles-container"></div>
+
+    <!-- 닉네임 설정 -->
+    <div id="nickname-setup">
+        <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요" />
+        <button onclick="setNickname()">저장</button>
+    </div>
 </body>
 </html>
