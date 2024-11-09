@@ -125,7 +125,6 @@
         }
     </style>
 
-    <!-- Auth0 JavaScript SDK 추가 -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
     <script>
         let auth0 = null;
@@ -245,41 +244,28 @@
                 articleElement.appendChild(titleElement);
                 articleElement.appendChild(thumbnailElement);
                 articleElement.appendChild(infoElement);
+
+                if (article.author === localStorage.getItem('nickname')) {
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = '삭제';
+                    deleteButton.onclick = (e) => {
+                        e.stopPropagation();
+                        deleteArticle(index);
+                    };
+                    articleElement.appendChild(deleteButton);
+                }
+
                 articlesContainer.appendChild(articleElement);
             });
         }
 
-        // 로그인 함수 수정
-async function login() {
-    if (!auth0) {
-        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
-        return;
-    }
-    try {
-        await auth0.loginWithRedirect({
-            redirect_uri: window.location.origin
-        });
-        isAuthenticated = true;
-        updateUI();
-    } catch (error) {
-        console.error("로그인 중 오류가 발생했습니다:", error);
-    }
-}
-
-// 로그인 상태 확인 후 기사 작성 페이지로 이동하는 함수 수정
-function checkLoginForArticle() {
-    if (!auth0) {
-        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
-        return;
-    }
-    if (!isAuthenticated) {
-        alert("로그인이 필요합니다.");
-        login();
-    } else {
-        window.location.href = "write.html";
-    }
-}
-
+        function deleteArticle(index) {
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            articles.splice(index, 1);
+            localStorage.setItem('articles', JSON.stringify(articles));
+            displayArticles();
+            alert("기사가 삭제되었습니다.");
+        }
 
         function openArticleView(article) {
             localStorage.setItem('currentArticle', JSON.stringify(article));
@@ -297,24 +283,23 @@ function checkLoginForArticle() {
     </script>
 </head>
 <body>
-    <header>
-        <h1>홈 화면</h1>
-        <div class="auth-buttons">
-            <button id="login-btn" class="button" onclick="login()">로그인</button>
-            <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
-        </div>
-        <div id="profile-dropdown" class="profile-dropdown">
-            <div id="profile-nickname">닉네임: </div>
-            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
-            <button class="dropdown-button" onclick="logout()">로그아웃</button>
-        </div>
+    <div class="auth-buttons">
+        <button id="login-btn" class="button" onclick="login()">로그인</button>
+        <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
+    </div>
+
+    <div id="profile-dropdown" class="profile-dropdown">
+        <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
         <div id="nickname-setup">
             <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
             <button onclick="setNickname()">닉네임 설정</button>
         </div>
-    </header>
+        <div id="profile-nickname"></div>
+    </div>
 
-    <button class="home-button" onclick="checkLoginForArticle()">기사 작성하기</button>
-    <section id="articles-container"></section>
+    <div class="home-button" onclick="checkLoginForArticle()">새 글 작성</div>
+
+    <h1>기사 목록</h1>
+    <div id="articles-container"></div>
 </body>
 </html>
