@@ -18,7 +18,7 @@
             padding: 15px;
             margin-bottom: 20px;
             position: relative;
-            cursor: pointer; /* 기사 클릭 시 포인터 표시 */
+            cursor: pointer;
         }
         .article-title {
             font-weight: bold;
@@ -36,6 +36,9 @@
             font-size: 0.8em;
             color: #666;
         }
+        h1 {
+            text-align: center;
+        }
         .home-button {
             margin-bottom: 20px;
             display: block;
@@ -49,16 +52,80 @@
             cursor: pointer;
             text-decoration: none;
         }
-        .auth-buttons, .profile-dropdown {
-            position: absolute;
-            right: 20px;
-            top: 20px;
+        .home-button:hover {
+            background-color: #0056b3;
         }
         .auth-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
             display: flex;
+            align-items: center;
+        }
+        .button, .profile-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-left: 10px;
+        }
+        .button:hover, .profile-button:hover {
+            background-color: #0056b3;
+        }
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+        }
+        .dropdown-button {
+            width: 100%;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        .dropdown-button:hover {
+            background-color: #cc0000;
+        }
+        #nickname-setup {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        #nickname-setup input {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #nickname-setup button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
         }
     </style>
 
+    <!-- Auth0 JavaScript SDK 추가 -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
     <script>
         let auth0 = null;
@@ -84,6 +151,7 @@
                     document.getElementById("nickname-setup").style.display = 'block';
                 } else {
                     document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
+                    document.getElementById("nickname-setup").style.display = 'none';
                 }
             }
             updateUI();
