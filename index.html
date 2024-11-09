@@ -249,6 +249,38 @@
             });
         }
 
+        // 로그인 함수 수정
+async function login() {
+    if (!auth0) {
+        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+    }
+    try {
+        await auth0.loginWithRedirect({
+            redirect_uri: window.location.origin
+        });
+        isAuthenticated = true;
+        updateUI();
+    } catch (error) {
+        console.error("로그인 중 오류가 발생했습니다:", error);
+    }
+}
+
+// 로그인 상태 확인 후 기사 작성 페이지로 이동하는 함수 수정
+function checkLoginForArticle() {
+    if (!auth0) {
+        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+    }
+    if (!isAuthenticated) {
+        alert("로그인이 필요합니다.");
+        login();
+    } else {
+        window.location.href = "write.html";
+    }
+}
+
+
         function openArticleView(article) {
             localStorage.setItem('currentArticle', JSON.stringify(article));
             window.location.href = 'view-article.html';
