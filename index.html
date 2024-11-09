@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>홈 화면</title>
     <style>
-        /* 기존 스타일들 유지 */
         body {
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
@@ -45,7 +44,7 @@
             display: block;
             text-align: center;
             padding: 10px 15px;
-            background-color: #4CAF50; /* 색상 변경 */
+            background-color: #007bff;
             color: #fff;
             font-weight: bold;
             border: none;
@@ -54,7 +53,7 @@
             text-decoration: none;
         }
         .home-button:hover {
-            background-color: #45a049;
+            background-color: #0056b3;
         }
         .auth-buttons {
             position: absolute;
@@ -86,7 +85,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
-            width: 180px;
+            width: 150px;
             text-align: center;
         }
         .dropdown-button {
@@ -126,82 +125,56 @@
         }
     </style>
 
+    <!-- Auth0 JavaScript SDK 추가 -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
     <script>
         let auth0 = null;
         let isAuthenticated = false;
 
-        // Auth0 초기화 함수
         async function initAuth0() {
-            try {
-                auth0 = await createAuth0Client({
-                    domain: 'dev-f8s32161wq0z3ksa.us.auth0.com',
-                    client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
-                });
+            auth0 = await createAuth0Client({
+                domain: 'dev-f8s32161wq0z3ksa.us.auth0.com',
+                client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
+            });
 
-                // 로그인 후 리디렉션 처리
-                if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
-                    await auth0.handleRedirectCallback();
-                    window.history.replaceState({}, document.title, "/");
-                }
-
-                isAuthenticated = await auth0.isAuthenticated();
-
-                if (isAuthenticated) {
-                    const user = await auth0.getUser();
-                    let nickname = localStorage.getItem('nickname');
-                    if (!nickname) {
-                        document.getElementById("nickname-setup").style.display = 'block';
-                    } else {
-                        document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
-                        document.getElementById("nickname-setup").style.display = 'none';
-                    }
-                }
-                updateUI();
-            } catch (error) {
-                console.error("Auth0 초기화 오류:", error);
+            if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+                await auth0.handleRedirectCallback();
+                window.history.replaceState({}, document.title, "/");
             }
+
+            isAuthenticated = await auth0.isAuthenticated();
+
+            if (isAuthenticated) {
+                const user = await auth0.getUser();
+                let nickname = localStorage.getItem('nickname');
+                if (!nickname) {
+                    document.getElementById("nickname-setup").style.display = 'block';
+                } else {
+                    document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
+                    document.getElementById("nickname-setup").style.display = 'none';
+                }
+            }
+            updateUI();
         }
 
-        // UI 업데이트 함수
         function updateUI() {
             const loginBtn = document.getElementById("login-btn");
             const profileBtn = document.getElementById("profile-btn");
 
             loginBtn.style.display = isAuthenticated ? "none" : "inline-block";
             profileBtn.style.display = isAuthenticated ? "block" : "none";
-
-            const dropdown = document.getElementById("profile-dropdown");
-            if (dropdown) {
-                dropdown.style.display = "none";
-            }
+            document.getElementById("profile-dropdown").style.display = "none";
         }
 
-        // 로그인 함수
         async function login() {
-            if (!auth0) {
-                console.error("Auth0 객체가 초기화되지 않았습니다.");
-                return;
-            }
-
-            try {
-                await auth0.loginWithRedirect({
-                    redirect_uri: window.location.origin
-                });
-                isAuthenticated = true;
-                updateUI();
-            } catch (error) {
-                console.error("로그인 실패:", error);
-            }
+            await auth0.loginWithRedirect({
+                redirect_uri: window.location.origin
+            });
+            isAuthenticated = true;
+            updateUI();
         }
 
-        // 로그아웃 함수
         async function logout() {
-            if (!auth0) {
-                console.error("Auth0 객체가 초기화되지 않았습니다.");
-                return;
-            }
-            
             await auth0.logout({
                 returnTo: window.location.origin
             });
@@ -209,7 +182,6 @@
             updateUI();
         }
 
-        // 닉네임 설정 함수
         function setNickname() {
             const nickname = document.getElementById("nickname-input").value;
             if (!nickname) {
@@ -228,13 +200,11 @@
             }
         }
 
-        // 프로필 드롭다운 토글 함수
         function toggleProfileDropdown() {
             const dropdown = document.getElementById("profile-dropdown");
             dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
         }
 
-        // 개발자 모드 활성화 함수
         function developerMode() {
             const devID = prompt("개발자 ID를 입력해주세요");
             if (devID === "hsGcOmeT0629") {
@@ -245,70 +215,106 @@
             }
         }
 
-        // 로그인 여부를 확인하고 기사 작성 페이지로 이동하는 함수
-        function checkLoginForArticle() {
-            if (!isAuthenticated) {
-                alert("로그인 후 사용 가능합니다.");
-                return;
-            }
-            window.location.href = 'write.html';
-        }
-
-        // 페이지 로딩 시 초기화 및 UI 업데이트
         window.addEventListener('load', () => {
             initAuth0();
             displayArticles();
         });
 
-        // 로컬스토리지에서 기사 목록을 불러오기
         function displayArticles() {
-            const articlesContainer = document.getElementById("articles-container");
+            const articlesContainer = document.getElementById('articles-container');
             const articles = JSON.parse(localStorage.getItem('articles')) || [];
-
             articlesContainer.innerHTML = '';
+
             articles.forEach((article, index) => {
                 const articleElement = document.createElement('div');
-                articleElement.classList.add('article');
-                articleElement.innerHTML = `
-                    <div class="article-title">${article.title}</div>
-                    <img src="${article.thumbnail}" class="article-thumbnail" />
-                    <div class="article-info">${article.author} | ${article.date}</div>
-                    <button onclick="openArticleView(${index})">기사 보기</button>
-                `;
+                articleElement.className = 'article';
+                articleElement.onclick = () => openArticleView(article);
+
+                const titleElement = document.createElement('div');
+                titleElement.className = 'article-title';
+                titleElement.textContent = article.title;
+
+                const thumbnailElement = document.createElement('img');
+                thumbnailElement.className = 'article-thumbnail';
+                thumbnailElement.src = article.thumbnail || 'default-thumbnail.jpg';
+
+                const infoElement = document.createElement('div');
+                infoElement.className = 'article-info';
+                infoElement.textContent = `작성자: ${article.author} | 작성일: ${article.date}`;
+
+                articleElement.appendChild(titleElement);
+                articleElement.appendChild(thumbnailElement);
+                articleElement.appendChild(infoElement);
                 articlesContainer.appendChild(articleElement);
             });
         }
 
-        // 기사 보기 페이지로 이동
-        function openArticleView(index) {
-            const articles = JSON.parse(localStorage.getItem('articles'));
-            const selectedArticle = articles[index];
-            localStorage.setItem('selectedArticle', JSON.stringify(selectedArticle));
+        // 로그인 함수 수정
+async function login() {
+    if (!auth0) {
+        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+    }
+    try {
+        await auth0.loginWithRedirect({
+            redirect_uri: window.location.origin
+        });
+        isAuthenticated = true;
+        updateUI();
+    } catch (error) {
+        console.error("로그인 중 오류가 발생했습니다:", error);
+    }
+}
+
+// 로그인 상태 확인 후 기사 작성 페이지로 이동하는 함수 수정
+function checkLoginForArticle() {
+    if (!auth0) {
+        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+    }
+    if (!isAuthenticated) {
+        alert("로그인이 필요합니다.");
+        login();
+    } else {
+        window.location.href = "write.html";
+    }
+}
+
+
+        function openArticleView(article) {
+            localStorage.setItem('currentArticle', JSON.stringify(article));
             window.location.href = 'view-article.html';
+        }
+
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인이 필요합니다.");
+                login();
+            } else {
+                window.location.href = "write.html";
+            }
         }
     </script>
 </head>
 <body>
-    <div class="auth-buttons">
-        <button id="login-btn" class="button" onclick="login()">로그인</button>
-        <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
-    </div>
+    <header>
+        <h1>홈 화면</h1>
+        <div class="auth-buttons">
+            <button id="login-btn" class="button" onclick="login()">로그인</button>
+            <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
+        </div>
+        <div id="profile-dropdown" class="profile-dropdown">
+            <div id="profile-nickname">닉네임: </div>
+            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
+            <button class="dropdown-button" onclick="logout()">로그아웃</button>
+        </div>
+        <div id="nickname-setup">
+            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
+            <button onclick="setNickname()">닉네임 설정</button>
+        </div>
+    </header>
 
-    <div id="profile-dropdown" class="profile-dropdown">
-        <div id="profile-nickname"></div>
-        <button class="dropdown-button" onclick="logout()">로그아웃</button>
-        <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
-    </div>
-
-    <div class="home-button" onclick="checkLoginForArticle()">기사 작성</div>
-
-    <h1>기사 목록</h1>
-    <div id="articles-container"></div>
-
-    <!-- 닉네임 설정 -->
-    <div id="nickname-setup">
-        <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요" />
-        <button onclick="setNickname()">저장</button>
-    </div>
+    <button class="home-button" onclick="checkLoginForArticle()">기사 작성하기</button>
+    <section id="articles-container"></section>
 </body>
 </html>
