@@ -179,6 +179,11 @@
 
         // 로그인 함수
         async function login() {
+            if (!auth0) {
+                console.error("Auth0 객체가 초기화되지 않았습니다.");
+                return;
+            }
+
             try {
                 await auth0.loginWithRedirect({
                     redirect_uri: window.location.origin
@@ -192,6 +197,11 @@
 
         // 로그아웃 함수
         async function logout() {
+            if (!auth0) {
+                console.error("Auth0 객체가 초기화되지 않았습니다.");
+                return;
+            }
+            
             await auth0.logout({
                 returnTo: window.location.origin
             });
@@ -235,18 +245,27 @@
             }
         }
 
+        // 로그인 여부를 확인하고 기사 작성 페이지로 이동하는 함수
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인 후 사용 가능합니다.");
+                return;
+            }
+            window.location.href = 'write.html';
+        }
+
         // 페이지 로딩 시 초기화 및 UI 업데이트
         window.addEventListener('load', () => {
             initAuth0();
             displayArticles();
         });
 
-        // 기사 목록 표시 함수
+        // 로컬스토리지에서 기사 목록을 불러오기
         function displayArticles() {
-            const articlesContainer = document.getElementById('articles-container');
+            const articlesContainer = document.getElementById("articles-container");
             const articles = JSON.parse(localStorage.getItem('articles')) || [];
-            articlesContainer.innerHTML = '';
 
+            articlesContainer.innerHTML = '';
             articles.forEach((article, index) => {
                 const articleElement = document.createElement('div');
                 articleElement.classList.add('article');
