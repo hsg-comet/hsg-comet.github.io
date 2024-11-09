@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>홈 화면</title>
     <style>
+        /* 기존 스타일들 유지 */
         body {
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
@@ -162,7 +163,9 @@
 
             loginBtn.style.display = isAuthenticated ? "none" : "inline-block";
             profileBtn.style.display = isAuthenticated ? "block" : "none";
-            document.getElementById("profile-dropdown").style.display = "none";
+            if (document.getElementById("profile-dropdown")) {
+                document.getElementById("profile-dropdown").style.display = "none";
+            }
         }
 
         async function login() {
@@ -264,20 +267,11 @@
             articles.splice(index, 1);
             localStorage.setItem('articles', JSON.stringify(articles));
             displayArticles();
-            alert("기사가 삭제되었습니다.");
         }
 
         function openArticleView(article) {
-            localStorage.setItem('currentArticle', JSON.stringify(article));
+            localStorage.setItem('selectedArticle', JSON.stringify(article));
             window.location.href = 'view-article.html';
-        }
-
-        function checkLoginForArticle() {
-            if (!isAuthenticated) {
-                alert("로그인이 필요합니다.");
-                return;
-            }
-            window.location.href = 'write.html';
         }
     </script>
 </head>
