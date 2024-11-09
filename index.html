@@ -27,14 +27,28 @@
         }
         .article-thumbnail {
             width: 100%;
-            height: auto;
-            max-height: 150px;  /* 세로 길이 고정 */
+            height: 150px;  /* 고정된 크기로 설정 */
             object-fit: cover;
             margin-bottom: 10px;
         }
         .article-info {
             font-size: 0.8em;
             color: #666;
+        }
+        .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .delete-button:hover {
+            background-color: #cc0000;
         }
         h1 {
             text-align: center;
@@ -50,7 +64,6 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            text-decoration: none;
         }
         .home-button:hover {
             background-color: #0056b3;
@@ -242,38 +255,51 @@
                 infoElement.className = 'article-info';
                 infoElement.textContent = `작성자: ${article.author} | 작성일: ${article.date}`;
 
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteArticle(index);
+                };
+
                 articleElement.appendChild(titleElement);
                 articleElement.appendChild(thumbnailElement);
                 articleElement.appendChild(infoElement);
+                articleElement.appendChild(deleteButton);
                 articlesContainer.appendChild(articleElement);
             });
+        }
+
+        function deleteArticle(index) {
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            const articleToDelete = articles[index];
+            const userNickname = localStorage.getItem('nickname');
+
+            if (articleToDelete.author === userNickname) {
+                articles.splice(index, 1);
+                localStorage.setItem('articles', JSON.stringify(articles));
+                displayArticles();
+                alert("기사 삭제되었습니다.");
+            } else {
+                alert("자기 기사가 아닙니다. 삭제할 수 없습니다.");
+            }
         }
 
         function openArticleView(article) {
             localStorage.setItem('currentArticle', JSON.stringify(article));
             window.location.href = 'view-article.html';
         }
-
-        function checkLoginForArticle() {
-            if (!isAuthenticated) {
-                alert("로그인이 필요합니다.");
-                login();
-            } else {
-                window.location.href = "write.html";
-            }
-        }
     </script>
 </head>
 <body>
     <header>
-        <h1>홈 화면</h1>
         <div class="auth-buttons">
             <button id="login-btn" class="button" onclick="login()">로그인</button>
             <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
         </div>
         <div id="profile-dropdown" class="profile-dropdown">
-            <div id="profile-nickname">닉네임: </div>
-            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
+            <button onclick="developerMode()">개발자 모드</button>
             <button class="dropdown-button" onclick="logout()">로그아웃</button>
         </div>
         <div id="nickname-setup">
