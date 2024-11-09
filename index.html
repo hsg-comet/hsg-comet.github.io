@@ -44,7 +44,7 @@
             display: block;
             text-align: center;
             padding: 10px 15px;
-            background-color: #007bff;
+            background-color: #4CAF50; /* 색상 변경 */
             color: #fff;
             font-weight: bold;
             border: none;
@@ -53,7 +53,7 @@
             text-decoration: none;
         }
         .home-button:hover {
-            background-color: #0056b3;
+            background-color: #45a049;
         }
         .auth-buttons {
             position: absolute;
@@ -85,7 +85,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
-            width: 150px;
+            width: 180px;
             text-align: center;
         }
         .dropdown-button {
@@ -275,10 +275,9 @@
         function checkLoginForArticle() {
             if (!isAuthenticated) {
                 alert("로그인이 필요합니다.");
-                login();
-            } else {
-                window.location.href = "write.html";
+                return;
             }
+            window.location.href = 'write.html';
         }
     </script>
 </head>
@@ -289,15 +288,12 @@
     </div>
 
     <div id="profile-dropdown" class="profile-dropdown">
-        <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
-        <div id="nickname-setup">
-            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
-            <button onclick="setNickname()">닉네임 설정</button>
-        </div>
         <div id="profile-nickname"></div>
+        <button class="dropdown-button" onclick="logout()">로그아웃</button>
+        <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
     </div>
 
-    <div class="home-button" onclick="checkLoginForArticle()">새 글 작성</div>
+    <div class="home-button" onclick="checkLoginForArticle()">기사 작성</div>
 
     <h1>기사 목록</h1>
     <div id="articles-container"></div>
