@@ -3,21 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>해정뉴스</title>
+    <title>홈 화면</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
             margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #007bff;
-            color: white;
             padding: 20px;
-            text-align: center;
-            font-size: 2em;
-            font-weight: bold;
         }
         .article {
             background-color: #fff;
@@ -35,7 +27,8 @@
         }
         .article-thumbnail {
             width: 100%;
-            height: 150px; /* 고정된 크기 */
+            height: auto;
+            max-height: 150px;
             object-fit: cover;
             margin-bottom: 10px;
         }
@@ -43,20 +36,24 @@
             font-size: 0.8em;
             color: #666;
         }
-        .delete-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #ff4d4d;
-            color: white;
+        h1 {
+            text-align: center;
+        }
+        .home-button {
+            margin-bottom: 20px;
+            display: block;
+            text-align: center;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
             border: none;
-            padding: 5px 10px;
-            font-size: 0.8em;
             border-radius: 5px;
             cursor: pointer;
+            text-decoration: none;
         }
-        .delete-button:hover {
-            background-color: #cc0000;
+        .home-button:hover {
+            background-color: #0056b3;
         }
         .auth-buttons {
             position: absolute;
@@ -126,45 +123,38 @@
             cursor: pointer;
             margin-left: 10px;
         }
-        #articles-container {
-            margin-top: 50px;
-        }
     </style>
 
     <!-- Auth0 JavaScript SDK 추가 -->
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spajs.production.js"></script>
     <script>
         let auth0 = null;
         let isAuthenticated = false;
 
         async function initAuth0() {
-            try {
-                auth0 = await createAuth0Client({
-                    domain: 'dev-f8s32161wq0z3ksa.us.auth0.com',
-                    client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
-                });
+            auth0 = await createAuth0Client({
+                domain: 'dev-f8s32161wq0z3ksa.us.auth0.com',
+                client_id: 'E36JFFRlzX6d1YfypXI13NigHWEmMoYd'
+            });
 
-                if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
-                    await auth0.handleRedirectCallback();
-                    window.history.replaceState({}, document.title, "/");
-                }
-
-                isAuthenticated = await auth0.isAuthenticated();
-
-                if (isAuthenticated) {
-                    const user = await auth0.getUser();
-                    let nickname = localStorage.getItem('nickname');
-                    if (!nickname) {
-                        document.getElementById("nickname-setup").style.display = 'block';
-                    } else {
-                        document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
-                        document.getElementById("nickname-setup").style.display = 'none';
-                    }
-                }
-                updateUI();
-            } catch (error) {
-                console.error("Auth0 초기화 중 오류 발생", error);
+            if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+                await auth0.handleRedirectCallback();
+                window.history.replaceState({}, document.title, "/");
             }
+
+            isAuthenticated = await auth0.isAuthenticated();
+
+            if (isAuthenticated) {
+                const user = await auth0.getUser();
+                let nickname = localStorage.getItem('nickname');
+                if (!nickname) {
+                    document.getElementById("nickname-setup").style.display = 'block';
+                } else {
+                    document.getElementById("profile-nickname").innerText = `닉네임: ${nickname}`;
+                    document.getElementById("nickname-setup").style.display = 'none';
+                }
+            }
+            updateUI();
         }
 
         function updateUI() {
@@ -225,6 +215,20 @@
             }
         }
 
+        function openArticleView(article) {
+            localStorage.setItem('currentArticle', JSON.stringify(article));
+            window.location.href = 'view-article.html';
+        }
+
+        function checkLoginForArticle() {
+            if (!isAuthenticated) {
+                alert("로그인이 필요합니다.");
+                login();
+            } else {
+                window.location.href = "write.html";
+            }
+        }
+
         window.addEventListener('load', () => {
             initAuth0();
             displayArticles();
@@ -252,64 +256,38 @@
                 infoElement.className = 'article-info';
                 infoElement.textContent = `작성자: ${article.author} | 작성일: ${article.date}`;
 
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'delete-button';
-                deleteButton.textContent = '삭제';
-                deleteButton.onclick = (e) => {
-                    e.stopPropagation();
-                    deleteArticle(index);
-                };
-
                 articleElement.appendChild(titleElement);
                 articleElement.appendChild(thumbnailElement);
                 articleElement.appendChild(infoElement);
-                articleElement.appendChild(deleteButton);
-
                 articlesContainer.appendChild(articleElement);
             });
         }
 
-        function deleteArticle(index) {
-            const articles = JSON.parse(localStorage.getItem('articles')) || [];
-            const articleToDelete = articles[index];
-            const userNickname = localStorage.getItem('nickname');
-
-            if (articleToDelete.author === userNickname) {
-                articles.splice(index, 1);
-                localStorage.setItem('articles', JSON.stringify(articles));
-                displayArticles();
-                alert("기사 삭제되었습니다.");
-            } else {
-                alert("자기 기사가 아닙니다. 삭제할 수 없습니다.");
-            }
-        }
-
-        function openArticleView(article) {
-            localStorage.setItem('currentArticle', JSON.stringify(article));
-            window.location.href = 'view-article.html';
-        }
     </script>
 </head>
 <body>
     <header>
-        해정뉴스
+        <h1>홈 화면</h1>
+        <div class="auth-buttons">
+            <button id="login-btn" class="button" onclick="login()">로그인</button>
+            <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
+        </div>
+        <div id="profile-dropdown" class="profile-dropdown">
+            <div id="profile-nickname">닉네임: </div>
+            <button class="dropdown-button" onclick="developerMode()">개발자 모드</button>
+            <button class="dropdown-button" onclick="logout()">로그아웃</button>
+        </div>
     </header>
 
-    <div class="auth-buttons">
-        <button id="login-btn" class="button" onclick="login()">로그인</button>
-        <button id="profile-btn" class="profile-button" onclick="toggleProfileDropdown()">프로필</button>
-    </div>
-
-    <div id="profile-dropdown" class="profile-dropdown">
-        <button onclick="developerMode()">개발자 모드</button>
-        <button class="dropdown-button" onclick="logout()">로그아웃</button>
-    </div>
+    <section>
+        <button class="home-button" onclick="checkLoginForArticle()">새 글 작성</button>
+        <div id="articles-container"></div>
+    </section>
 
     <div id="nickname-setup">
-        <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요">
-        <button onclick="setNickname()">닉네임 설정</button>
+        <label for="nickname-input">닉네임을 설정하세요:</label>
+        <input type="text" id="nickname-input" placeholder="닉네임 입력">
+        <button onclick="setNickname()">저장</button>
     </div>
-
-    <section id="articles-container"></section>
 </body>
 </html>
