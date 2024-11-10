@@ -18,7 +18,7 @@
             padding: 15px;
             margin-bottom: 20px;
             position: relative;
-            width: 250px; /* 정사각형 크기 */
+            width: 300px; /* 원래 크기 유지 */
             text-align: center;
             cursor: pointer;
         }
@@ -28,8 +28,8 @@
             margin-bottom: 10px;
         }
         .article-thumbnail {
-            width: 100%; /* 정사각형 이미지 */
-            height: 150px;
+            width: 100%; /* 이미지 정사각형 */
+            height: 300px;
             object-fit: cover;
             margin-bottom: 10px;
         }
@@ -200,9 +200,13 @@
             dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
         }
 
-        window.addEventListener('load', () => {
-            initAuth0();
+        window.addEventListener('load', async () => {
+            await initAuth0();
             displayArticles();
+            if (!isAuthenticated) {
+                document.getElementById("nickname-setup").style.display = 'none';
+                document.getElementById("login-btn").style.display = 'inline-block';
+            }
         });
 
         function displayArticles() {
@@ -227,7 +231,7 @@
                 infoElement.className = 'article-info';
                 infoElement.textContent = `작성자: ${article.author} | 작성일: ${article.date}`;
 
-                // 삭제 버튼 추가 (자신의 글만 삭제 가능)
+                // 삭제 및 수정 버튼 (자신의 글만 표시)
                 if (article.author === localStorage.getItem('nickname')) {
                     const deleteButton = document.createElement('button');
                     deleteButton.className = 'delete-button';
@@ -240,7 +244,6 @@
                     };
                     articleElement.appendChild(deleteButton);
 
-                    // 수정 버튼 추가 (자신의 글만 수정 가능)
                     const editButton = document.createElement('button');
                     editButton.className = 'edit-button';
                     editButton.textContent = '수정';
