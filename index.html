@@ -26,9 +26,8 @@
             margin-bottom: 10px;
         }
         .article-thumbnail {
-            width: 100%;
-            height: auto;
-            max-height: 150px;
+            width: 150px; /* 썸네일 크기 고정 */
+            height: 150px;
             object-fit: cover;
             margin-bottom: 10px;
         }
@@ -123,9 +122,21 @@
             cursor: pointer;
             margin-left: 10px;
         }
+        /* 삭제 버튼 스타일 추가 */
+        .delete-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff4d4d;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
     </style>
 
-    <!-- Auth0 JavaScript SDK 추가 -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/1.13/auth0-spa-js.production.js"></script>
     <script>
         let auth0 = null;
@@ -205,16 +216,6 @@
             dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
         }
 
-        function developerMode() {
-            const devID = prompt("개발자 ID를 입력해주세요");
-            if (devID === "hsGcOmeT0629") {
-                document.getElementById("profile-nickname").innerText = "닉네임: [개발자]";
-                alert("개발자 모드 활성화되었습니다.");
-            } else {
-                alert("일치하지 않습니다.");
-            }
-        }
-
         window.addEventListener('load', () => {
             initAuth0();
             displayArticles();
@@ -242,44 +243,28 @@
                 infoElement.className = 'article-info';
                 infoElement.textContent = `작성자: ${article.author} | 작성일: ${article.date}`;
 
+                /* 삭제 버튼 추가 */
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = (event) => {
+                    event.stopPropagation();
+                    if (article.author === localStorage.getItem('nickname')) {
+                        articles.splice(index, 1);
+                        localStorage.setItem('articles', JSON.stringify(articles));
+                        displayArticles();
+                    } else {
+                        alert("본인의 글만 삭제할 수 있습니다.");
+                    }
+                };
+
                 articleElement.appendChild(titleElement);
                 articleElement.appendChild(thumbnailElement);
                 articleElement.appendChild(infoElement);
+                articleElement.appendChild(deleteButton); // 삭제 버튼 추가
                 articlesContainer.appendChild(articleElement);
             });
         }
-
-        // 로그인 함수 수정
-async function login() {
-    if (!auth0) {
-        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
-        return;
-    }
-    try {
-        await auth0.loginWithRedirect({
-            redirect_uri: window.location.origin
-        });
-        isAuthenticated = true;
-        updateUI();
-    } catch (error) {
-        console.error("로그인 중 오류가 발생했습니다:", error);
-    }
-}
-
-// 로그인 상태 확인 후 기사 작성 페이지로 이동하는 함수 수정
-function checkLoginForArticle() {
-    if (!auth0) {
-        console.log("Auth0 클라이언트 초기화 중입니다. 잠시 후 다시 시도해주세요.");
-        return;
-    }
-    if (!isAuthenticated) {
-        alert("로그인이 필요합니다.");
-        login();
-    } else {
-        window.location.href = "write.html";
-    }
-}
-
 
         function openArticleView(article) {
             localStorage.setItem('currentArticle', JSON.stringify(article));
