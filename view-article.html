@@ -5,52 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>기사 보기</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
+        .container {
             padding: 20px;
         }
         .home-button {
-            margin-bottom: 20px;
             display: block;
-            text-align: center;
-            padding: 10px 15px;
-            background-color: #4CAF50; /* 색상 동일 */
+            padding: 10px;
+            background-color: #007bff;
             color: #fff;
             font-weight: bold;
-            border: none;
             border-radius: 5px;
-            cursor: pointer;
             text-decoration: none;
+            margin: 0 auto;
+            width: 200px;
+            text-align: center;
         }
-        .home-button:hover {
-            background-color: #45a049;
-        }
-        /* 기타 스타일 */
     </style>
 </head>
 <body>
-    <a href="index.html" class="home-button">홈으로</a>
-
-    <!-- 선택된 기사 내용 표시 -->
-    <div id="article-content">
-        <!-- 자바스크립트로 내용을 동적으로 삽입 -->
-    </div>
+    <a href="index.html" class="home-button">홈으로 돌아가기</a>
+    <div class="container" id="article-container"></div>
 
     <script>
-        window.addEventListener('load', () => {
-            const article = JSON.parse(localStorage.getItem('selectedArticle'));
-            const articleContent = document.getElementById('article-content');
-            if (article) {
-                articleContent.innerHTML = `
-                    <h2>${article.title}</h2>
-                    <img src="${article.thumbnail || 'default-thumbnail.jpg'}" class="article-thumbnail" />
-                    <div class="article-info">${article.author} | ${article.date}</div>
-                    <div class="article-body">${article.body}</div>
-                `;
-            }
-        });
+        const article = JSON.parse(localStorage.getItem('currentArticle'));
+        const container = document.getElementById('article-container');
+
+        if (article) {
+            container.innerHTML = `
+                <h1>${article.title}</h1>
+                <img src="${article.thumbnail}" alt="썸네일" style="width: 100%; height: auto;">
+                <p><strong>작성자:</strong> ${article.author} | <strong>작성일:</strong> ${article.date}</p>
+                <div>${article.content}</div>
+            `;
+        }
     </script>
 </body>
 </html>
