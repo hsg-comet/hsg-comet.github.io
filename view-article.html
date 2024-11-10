@@ -31,12 +31,39 @@
         const container = document.getElementById('article-container');
 
         if (article) {
+            const nickname = localStorage.getItem('nickname');
             container.innerHTML = `
                 <h1>${article.title}</h1>
-                <img src="${article.thumbnail}" alt="썸네일" style="width: 100%; height: auto;">
                 <p><strong>작성자:</strong> ${article.author} | <strong>작성일:</strong> ${article.date}</p>
                 <div>${article.content}</div>
             `;
+
+            // 삭제 및 수정 버튼 추가 (자신의 글만 표시)
+            if (article.author === nickname) {
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = () => {
+                    const articles = JSON.parse(localStorage.getItem("articles")) || [];
+                    const index = articles.findIndex(a => a.title === article.title && a.date === article.date);
+                    if (index !== -1) {
+                        articles.splice(index, 1);
+                        localStorage.setItem("articles", JSON.stringify(articles));
+                        alert("기사가 삭제되었습니다.");
+                        window.location.href = "index.html";
+                    }
+                };
+
+                const editButton = document.createElement('button');
+                editButton.textContent = '수정';
+                editButton.onclick = () => {
+                    const index = JSON.parse(localStorage.getItem("articles")).findIndex(a => a.title === article.title && a.date === article.date);
+                    localStorage.setItem('editingArticleIndex', index);
+                    window.location.href = 'write.html';
+                };
+
+                container.appendChild(deleteButton);
+                container.appendChild(editButton);
+            }
         }
     </script>
 </body>
