@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>홈 화면</title>
     <style>
+        .articles-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80%; /* Adjust width for the article section */
+            margin: 0 auto;
+        }
+        .article {
+            max-width: 700px; /* Increase article box width */
+            padding: 20px; /* Increase padding */
+            margin: 10px 0;
+            word-wrap: break-word; /* Ensure long titles wrap properly */
+        }
+        .article-title {
+            word-break: break-word;
+        }
+    
         body {
             font-family: Arial, sans-serif;
             background-color: #f9f9f9;
@@ -18,8 +35,6 @@
             padding: 15px;
             margin-bottom: 20px;
             position: relative;
-            width: 300px; /* 원래 크기 유지 */
-            text-align: center;
             cursor: pointer;
         }
         .article-title {
@@ -28,8 +43,8 @@
             margin-bottom: 10px;
         }
         .article-thumbnail {
-            width: 100%; /* 이미지 정사각형 */
-            height: 300px;
+            width: 150px; /* 썸네일 크기 고정 */
+            height: 150px;
             object-fit: cover;
             margin-bottom: 10px;
         }
@@ -103,7 +118,29 @@
         .dropdown-button:hover {
             background-color: #cc0000;
         }
-        .delete-button, .edit-button {
+        #nickname-setup {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+        #nickname-setup input {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #nickname-setup button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        /* 삭제 버튼 스타일 추가 */
+        .delete-button {
             position: absolute;
             top: 10px;
             right: 10px;
@@ -114,10 +151,6 @@
             cursor: pointer;
             padding: 5px 10px;
             font-size: 0.9em;
-            margin-left: 5px;
-        }
-        .edit-button {
-            background-color: #4CAF50; /* 수정 버튼은 녹색 */
         }
     </style>
 
@@ -200,13 +233,9 @@
             dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
         }
 
-        window.addEventListener('load', async () => {
-            await initAuth0();
+        window.addEventListener('load', () => {
+            initAuth0();
             displayArticles();
-            if (!isAuthenticated) {
-                document.getElementById("nickname-setup").style.display = 'none';
-                document.getElementById("login-btn").style.display = 'inline-block';
-            }
         });
 
         function displayArticles() {
@@ -231,32 +260,25 @@
                 infoElement.className = 'article-info';
                 infoElement.textContent = `작성자: ${article.author} | 작성일: ${article.date}`;
 
-                // 삭제 및 수정 버튼 (자신의 글만 표시)
-                if (article.author === localStorage.getItem('nickname')) {
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'delete-button';
-                    deleteButton.textContent = '삭제';
-                    deleteButton.onclick = (event) => {
-                        event.stopPropagation();
+                /* 삭제 버튼 추가 */
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = '삭제';
+                deleteButton.onclick = (event) => {
+                    event.stopPropagation();
+                    if (article.author === localStorage.getItem('nickname')) {
                         articles.splice(index, 1);
                         localStorage.setItem('articles', JSON.stringify(articles));
                         displayArticles();
-                    };
-                    articleElement.appendChild(deleteButton);
-
-                    const editButton = document.createElement('button');
-                    editButton.className = 'edit-button';
-                    editButton.textContent = '수정';
-                    editButton.onclick = (event) => {
-                        event.stopPropagation();
-                        editArticle(index);
-                    };
-                    articleElement.appendChild(editButton);
-                }
+                    } else {
+                        alert("본인의 글만 삭제할 수 있습니다.");
+                    }
+                };
 
                 articleElement.appendChild(titleElement);
                 articleElement.appendChild(thumbnailElement);
                 articleElement.appendChild(infoElement);
+                articleElement.appendChild(deleteButton); // 삭제 버튼 추가
                 articlesContainer.appendChild(articleElement);
             });
         }
@@ -273,15 +295,6 @@
             } else {
                 window.location.href = "write.html";
             }
-        }
-
-        function editArticle(index) {
-            const articles = JSON.parse(localStorage.getItem('articles')) || [];
-            const article = articles[index];
-            if (!article) return;
-            localStorage.setItem('editingArticleIndex', index);
-            localStorage.setItem('currentArticle', JSON.stringify(article));
-            window.location.href = 'write.html';
         }
     </script>
 </head>
