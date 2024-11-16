@@ -87,7 +87,33 @@
             localStorage.setItem('editArticle', JSON.stringify(currentArticle));
             window.location.href = "write.html";
         }
+    
+        function deleteArticle() {
+            const currentArticle = JSON.parse(localStorage.getItem('currentArticle'));
+            const userNickname = localStorage.getItem('nickname');
+            if (currentArticle.author !== userNickname) {
+                alert("본인의 글만 삭제할 수 있습니다.");
+                return;
+            }
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            const updatedArticles = articles.filter(article => article.title !== currentArticle.title);
+            localStorage.setItem('articles', JSON.stringify(updatedArticles));
+            alert("기사가 삭제되었습니다.");
+            window.location.href = "index.html";
+        }
+
+        function editArticle() {
+            const currentArticle = JSON.parse(localStorage.getItem('currentArticle'));
+            const userNickname = localStorage.getItem('nickname');
+            if (currentArticle.author !== userNickname) {
+                alert("본인의 글만 수정할 수 있습니다.");
+                return;
+            }
+            localStorage.setItem('editArticle', JSON.stringify(currentArticle));
+            window.location.href = "write.html";
+        }
     </script>
+    
     
 </body>
 </html>
