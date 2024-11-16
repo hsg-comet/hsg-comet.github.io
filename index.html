@@ -9,17 +9,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 80%; /* Adjust width for the article section */
-            margin: 0 auto;
+            justify-content: center; /* Center the articles vertically */
+            width: 100%;
+            min-height: 100vh; /* Ensure it occupies full height */
+            box-sizing: border-box;
         }
         .article {
-            max-width: 700px; /* Increase article box width */
-            padding: 20px; /* Increase padding */
-            margin: 10px 0;
-            word-wrap: break-word; /* Ensure long titles wrap properly */
-        }
-        .article-title {
-            word-break: break-word;
+            max-width: 700px;
+            width: 80%; /* Ensure the articles have consistent width */
+            padding: 20px;
+            margin: 15px 0; /* Add spacing between articles */
+            word-wrap: break-word; /* Wrap long text */
         }
     
         body {
